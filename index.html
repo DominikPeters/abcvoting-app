@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Approval-Based Committee Voting | Pref.Tools</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="This page allows you to instantly compute approval-based committee voting rules online, 
+      including PAV (Proportional Approval Voting), Phragmén's method, and the Method of Equal Shares."
+        name="description" />
+    <meta content="This page allows you to instantly compute approval-based committee voting rules online, 
+      including PAV (Proportional Approval Voting), Phragmén's method, and the Method of Equal Shares."
+        property="og:description" />
+    <link href="https://pref.tools/abcvoting/" rel="canonical" />
+    <meta content="https://pref.tools/" property="og:url" />
+    <meta content="Approval-Based Committee Voting | Pref.Tools" property="og:title" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta content="https://pref.tools/abcvoting/screenshot.png" property="og:image" />
+    <meta content="max-image-preview:large" name="robots" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="imports/hystmodal.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css" />
+</head>
+
+<body class="dropzone" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);"
+    ondragenter="dragStartHandler(event);" ondragleave="dragEndHandler(event);">
+    <h1><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="users-gear"
+            class="svg-inline--fa fa-users-gear" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
+            <path fill="currentColor"
+                d="M512 160c44.18 0 80-35.82 80-80S556.2 0 512 0c-44.18 0-80 35.82-80 80S467.8 160 512 160zM128 160c44.18 0 80-35.82 80-80S172.2 0 128 0C83.82 0 48 35.82 48 80S83.82 160 128 160zM319.9 320c57.41 0 103.1-46.56 103.1-104c0-57.44-46.54-104-103.1-104c-57.41 0-103.1 46.56-103.1 104C215.9 273.4 262.5 320 319.9 320zM368 400c0-16.69 3.398-32.46 8.619-47.36C374.3 352.5 372.2 352 369.9 352H270.1C191.6 352 128 411.7 128 485.3C128 500.1 140.7 512 156.4 512h266.1C389.5 485.6 368 445.5 368 400zM183.9 216c0-5.449 .9824-10.63 1.609-15.91C174.6 194.1 162.6 192 149.9 192H88.08C39.44 192 0 233.8 0 285.3C0 295.6 7.887 304 17.62 304h199.5C196.7 280.2 183.9 249.7 183.9 216zM551.9 192h-61.84c-12.8 0-24.88 3.037-35.86 8.24C454.8 205.5 455.8 210.6 455.8 216c0 21.47-5.625 41.38-14.65 59.34C462.2 263.4 486.1 256 512 256c42.48 0 80.27 18.74 106.6 48h3.756C632.1 304 640 295.6 640 285.3C640 233.8 600.6 192 551.9 192zM618.1 366.7c-5.025-16.01-13.59-30.62-24.75-42.71c-1.674-1.861-4.467-2.326-6.699-1.023l-19.17 11.07c-8.096-6.887-17.4-12.28-27.45-15.82V295.1c0-2.514-1.861-4.746-4.281-5.213c-16.56-3.723-33.5-3.629-49.32 0C484.9 291.2 483.1 293.5 483.1 295.1v22.24c-10.05 3.537-19.36 8.932-27.45 15.82l-19.26-11.07c-2.139-1.303-4.932-.8379-6.697 1.023c-11.17 12.1-19.73 26.71-24.66 42.71c-.7441 2.512 .2793 5.117 2.42 6.326l19.17 11.17c-1.859 10.42-1.859 21.21 0 31.64l-19.17 11.17c-2.234 1.209-3.164 3.816-2.42 6.328c4.932 16.01 13.49 30.52 24.66 42.71c1.766 1.863 4.467 2.328 6.697 1.025l19.26-11.07c8.094 6.887 17.4 12.28 27.45 15.82v22.24c0 2.514 1.77 4.746 4.188 5.211c16.66 3.723 33.5 3.629 49.32 0c2.42-.4648 4.281-2.697 4.281-5.211v-22.24c10.05-3.535 19.36-8.932 27.45-15.82l19.17 11.07c2.141 1.303 5.025 .8379 6.699-1.025c11.17-12.1 19.73-26.7 24.75-42.71c.7441-2.512-.2773-5.119-2.512-6.328l-19.17-11.17c1.953-10.42 1.953-21.22 0-31.64l19.17-11.17C618.7 371.8 619.7 369.2 618.1 366.7zM512 432c-17.67 0-32-14.33-32-32c0-17.67 14.33-32 32-32s32 14.33 32 32C544 417.7 529.7 432 512 432z">
+            </path>
+        </svg> Pref.Tools: <span data-tippy-content="approval-based committee voting">ABC Voting</span></h1>
+
+    <main>
+        <section>
+            <p id="dismissable-about">
+                This page allows you to instantly compute approval-based committee voting rules online,
+                including <a href="/abcvoting/pav/">PAV</a> (Proportional Approval Voting), <a
+                    href="/abcvoting/phragmen/">Phragmén's methods</a>, and
+                the Method of Equal Shares. 27 voting rules are available.
+                The computations are done locally in your browser.
+                You can also generate random profiles.
+                By clicking on a selected committee, you can check the axiomatic properties of the committee
+                and the algorithm's steps for finding it.
+                <a id="dismiss-button">✗</a>
+            </p>
+
+            <table id="profile-table">
+            </table>
+        </section>
+
+        <aside>
+            <div id="committee-size-controls">
+                <div>
+                    <label for="party1">Committee size <em>k</em> = </label>
+                    <input type="number" id="committee-size-input" value="5" min="1">
+                </div>
+                <input type="range" id="committee-size-range" min="1" max="20">
+            </div>
+            <div style="display: flex; gap: 0.5em;">
+                <button style="flex: 1" id="random-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="14" fill="currentColor"
+                        class="bi bi-shuffle" viewBox="0 0 16 16"
+                        style="position: relative; top: 2.5px; margin-top: -16px; margin-right: 2px;">
+                        <path fill-rule="evenodd"
+                            d="M0 3.5A.5.5 0 0 1 .5 3H1c2.202 0 3.827 1.24 4.874 2.418.49.552.865 1.102 1.126 1.532.26-.43.636-.98 1.126-1.532C9.173 4.24 10.798 3 13 3v1c-1.798 0-3.173 1.01-4.126 2.082A9.624 9.624 0 0 0 7.556 8a9.624 9.624 0 0 0 1.317 1.918C9.828 10.99 11.204 12 13 12v1c-2.202 0-3.827-1.24-4.874-2.418A10.595 10.595 0 0 1 7 9.05c-.26.43-.636.98-1.126 1.532C4.827 11.76 3.202 13 1 13H.5a.5.5 0 0 1 0-1H1c1.798 0 3.173-1.01 4.126-2.082A9.624 9.624 0 0 0 6.444 8a9.624 9.624 0 0 0-1.317-1.918C4.172 5.01 2.796 4 1 4H.5a.5.5 0 0 1-.5-.5z" />
+                        <path
+                            d="M13 5.466V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192zm0 9v-3.932a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192z" />
+                    </svg>
+                    <strong>Generate random
+                        matrix</strong></button>
+                <button style="flex: 0; line-height: 0;" data-tippy-content="Configure random generator"
+                    data-hystmodal="#randomize-modal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-gear-fill" viewBox="0 0 16 16">
+                        <path
+                            d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" />
+                    </svg>
+                </button>
+            </div>
+            <button data-hystmodal="#library-modal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-collection" viewBox="0 0 16 16"
+                    style="position: relative; top: 3px; margin-top: -16px; margin-right: 2px;">
+                    <path
+                        d="M2.5 3.5a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11zm2-2a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1h-7zM0 13a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 16 13V6a1.5 1.5 0 0 0-1.5-1.5h-13A1.5 1.5 0 0 0 0 6v7zm1.5.5A.5.5 0 0 1 1 13V6a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-13z" />
+                </svg>
+                Open example library</button>
+            <button data-hystmodal="#rule-choice-modal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-list-check" viewBox="0 0 16 16"
+                    style="position: relative; top: 4px; margin-top: -16px; margin-right: 2px;">
+                    <path fill-rule="evenodd"
+                        d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3.854 2.146a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 3.293l1.146-1.147a.5.5 0 0 1 .708 0zm0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 7.293l1.146-1.147a.5.5 0 0 1 .708 0zm0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0z" />
+                </svg>
+                <span id="choose-rules-button-text">
+                    Choose rules
+                </span>
+            </button>
+            <div style="display: flex; gap: 0.5em;">
+                <button style="flex: 1; padding-left: 0; padding-right: 0;" id="add-voter-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-plus-circle" viewBox="0 0 16 16"
+                        style="position: relative; top: 4px; margin-top: -16px; margin-right: 2px;">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                        <path
+                            d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                    </svg>
+                    Add voter</button>
+                <button style="flex: 1; padding-left: 0; padding-right: 0;" id="add-candidate-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-plus-circle" viewBox="0 0 16 16"
+                        style="position: relative; top: 4px; margin-top: -16px; margin-right: 2px;">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                        <path
+                            d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                    </svg>
+                    Add candidate</button>
+            </div>
+            <div style="display: flex; gap: 0.5em;">
+                <button id="copy-button" style="flex: 1; padding-left: 0; padding-right: 0;"
+                    data-tippy-content="Copy current profile as 0/1 matrix">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-clipboard2" viewBox="0 0 16 16"
+                        style="position: relative; top: 3px; margin-top: -16px; margin-right: 2px;">
+                        <path
+                            d="M3.5 2a.5.5 0 0 0-.5.5v12a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-12a.5.5 0 0 0-.5-.5H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 2.5v12a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-12A1.5 1.5 0 0 1 3.5 1H4a.5.5 0 0 1 0 1h-.5Z" />
+                        <path
+                            d="M10 .5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5.5.5 0 0 1-.5.5.5.5 0 0 0-.5.5V2a.5.5 0 0 0 .5.5h5A.5.5 0 0 0 11 2v-.5a.5.5 0 0 0-.5-.5.5.5 0 0 1-.5-.5Z" />
+                    </svg>
+                    Copy matrix</button>
+                <button id="copy-url-button" style="flex: 1; padding-left: 0; padding-right: 0;"
+                    data-tippy-content="Copy shareable URL to the current profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-download" viewBox="0 0 16 16"
+                        style="position: relative; top: 3px; margin-top: -16px; margin-right: 2px;">
+                        <path
+                            d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z" />
+                        <path
+                            d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z" />
+                    </svg>
+                    Copy link</button>
+                <button id="export-button" data-hystmodal="#export-modal"
+                    style="flex: 1; padding-left: 0; padding-right: 0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-download" viewBox="0 0 16 16"
+                        style="position: relative; top: 3px; margin-top: -16px; margin-right: 2px;">
+                        <path
+                            d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                        <path
+                            d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
+                    </svg>
+                    Export</button>
+            </div>
+            <div class="checkbox-option">
+                <input type="checkbox" id="live-mode" checked>
+                <label for="live-mode">Live mode (recompute with every change)</label>
+            </div>
+            <!-- <div class="checkbox-option">
+                <input type="checkbox" id="resolute" checked>
+                <label for="resolute">Resolute (break ties)</label>
+            </div> -->
+            <div class="checkbox-option">
+                <input type="checkbox" id="fractions">
+                <label for="fractions" data-tippy-content="Note: not all rules have implementations using fractions">Use
+                    fractions instead of floats</label>
+            </div>
+            <div class="checkbox-option">
+                <input type="checkbox" id="showPropertyinTable">
+                <label for="showPropertyinTable">Show
+                    property
+                    <select id="propertyToShow"
+                        style="width: 5em; font-size: 98%; background-color: transparent; color: white;">
+                        <option value="pareto">Pareto</option>
+                        <option value="core">Core</option>
+                        <option value="fjr">FJR</option>
+                        <option value="ejr+">EJR+</option>
+                        <option value="ejr">EJR</option>
+                        <option value="pjr">PJR</option>
+                        <option value="jr">JR</option>
+                    </select> in table</label>
+            </div>
+
+            <details id="hint-paste">
+                <summary>
+                    Tip: Paste a 0/1 matrix into this page.
+                </summary>
+                <p>For example, copy and paste the following matrix:</p>
+                <pre>
+    111100000
+    001111110
+    000000111
+    000111000</pre>
+            </details>
+
+            <details id="hint-drop">
+                <summary>
+                    Tip: Drop a file into this page.
+                </summary>
+                <p style="margin-top: 0.5em; margin-bottom: 0.5em;">Drop a file to import. Supported formats:</p>
+                <ul style="margin-top: 0; margin-bottom: 0; padding-left: 1em; font-size: 90%;">
+                    <li>matrix .txt</li>
+                    <li>preflib (.soi, .toi, .soc, .toc)</li>
+                    <li>.abc.yaml</li>
+                </ul>
+                <p style="margin-top: 0.5em; margin-bottom: 0em;">In preflib files that are not approval / dichotomous,
+                    voters will approve the candidates in their top indifference class.</p>
+            </details>
+
+            <p id="credits">
+                Built using the <a href="https://github.com/martinlackner/abcvoting">abcvoting</a> package by
+                Lackner et al.<br>
+                <!-- <a href="https://github.com/DominikPeters/pqtree.js">Github</a> &middot;  -->
+                Web version: <a href="https://dominik-peters.de">Dominik Peters</a>
+                &middot; updated November 2023
+            </p>
+        </aside>
+
+        <div class="hystmodal" id="randomize-modal" aria-hidden="true">
+            <div class="hystmodal__wrap">
+                <div class="hystmodal__window" role="dialog" aria-modal="true">
+                    <button data-hystclose class="hystmodal__close">Close</button>
+                    <strong>Configure Random Profile Generator</strong> <br>
+                    <p class="citation" style="margin-top:0;">For more information, see
+                        <i>How to Sample Approval Elections?</i>
+                        Stanisław Szufa, Piotr Faliszewski, Łukasz Janeczko, Martin Lackner, Arkadii Slinko, Krzysztof
+                        Sornat, Nimrod Talmon.
+                        <a href="https://arxiv.org/abs/2207.01140">arXiv:2207.01140</a>
+                    </p>
+                    <ul id="probability-distributions-list">
+                        <li>
+                            <input type="radio" name="randomize" value="IC" checked id="IC">
+                            <label for="IC">Impartial Culture (IC)</label>
+                            <div class="random-parameter">
+                                <input type="text" id="IC-p" value="0.5" size="4"> p : float in [0, 1] - probability of
+                                approving a candidate
+                            </div>
+                        </li>
+                        <li>
+                            <input type="radio" name="randomize" value="IC fixed-size" id="IC fixed-size">
+                            <label for="IC fixed-size">Impartial Culture (IC) with fixed size</label>
+                            <div class="random-parameter">
+                                <input type="text" id="IC-setsize" value="3" size="4"> setsize : int - number of
+                                candidates to approve
+                            </div>
+                        </li>
+                        <li>
+                            <input type="radio" name="randomize" value="Euclidean VCR" id="Euclidean VCR">
+                            <label for="Euclidean VCR">Euclidean VCR (Voter Candidate Range)</label>
+                            <div class="random-parameter">
+                                <input type="text" id="Euclidean VCR-radius" value="0.5" size="4"> radius : float -
+                                voters will approve candidates located within this radius
+                            </div>
+                            <div class="random-parameter">
+                                <select id="Euclidean VCR-voter_prob_distribution">
+                                    <option value="1d_interval">1D Interval (uniform [0,1])</option>
+                                    <option value="1d_gaussian">1D Gaussian (0.5 &pm; 0.15)</option>
+                                    <option value="2d_square">2D Square (uniform [0,1]²)</option>
+                                    <option value="2d_disc">2D Disc (uniform, radius 1)</option>
+                                    <option value="2d_gaussian">2D Gaussian</option>
+                                    <option value="2d_gaussian_disc">2D Gaussian restricted to disc</option>
+                                </select> voter_prob_distribution : str - probability distribution of the voter points
+                            </div>
+                            <div class="random-parameter">
+                                <select id="Euclidean VCR-candidate_prob_distribution">
+                                    <option value="1d_interval">1D Interval (uniform [0,1])</option>
+                                    <option value="1d_gaussian">1D Gaussian (0.5 &pm; 0.15)</option>
+                                    <option value="2d_square">2D Square (uniform [0,1]²)</option>
+                                    <option value="2d_disc">2D Disc (uniform, radius 1)</option>
+                                    <option value="2d_gaussian">2D Gaussian</option>
+                                    <option value="2d_gaussian_disc">2D Gaussian restricted to disc</option>
+                                </select> candidate_prob_distribution : str - probability distribution of the voter
+                                points
+                            </div>
+                            <span id="Euclidean VCR-warning"
+                                style="color: red; display: none; margin-left: 2.5em; font-size: 90%;">
+                                Error: Voter and candidate distributions have different dimensions.
+                            </span>
+                        </li>
+                        <li>
+                            <input type="radio" name="randomize" value="Euclidean fixed-size" id="Euclidean fixed-size">
+                            <label for="Euclidean fixed-size">Euclidean fixed size</label>
+                            <div class="random-parameter">
+                                <input type="text" id="Euclidean fixed-size-setsize" value="3" size="4"> setsize : int -
+                                number of candidates to approve
+                            </div>
+                            <div class="random-parameter">
+                                <select id="Euclidean fixed-size-voter_prob_distribution">
+                                    <option value="1d_interval">1D Interval (uniform [0,1])</option>
+                                    <option value="1d_gaussian">1D Gaussian (0.5 &pm; 0.15)</option>
+                                    <option value="2d_square">2D Square (uniform [0,1]²)</option>
+                                    <option value="2d_disc">2D Disc (uniform, radius 1)</option>
+                                    <option value="2d_gaussian">2D Gaussian</option>
+                                    <option value="2d_gaussian_disc">2D Gaussian restricted to disc</option>
+                                </select> voter_prob_distribution : str - probability distribution of the voter points
+                            </div>
+                            <div class="random-parameter">
+                                <select id="Euclidean fixed-size-candidate_prob_distribution">
+                                    <option value="1d_interval">1D Interval (uniform [0,1])</option>
+                                    <option value="1d_gaussian">1D Gaussian (0.5 &pm; 0.15)</option>
+                                    <option value="2d_square">2D Square (uniform [0,1]²)</option>
+                                    <option value="2d_disc">2D Disc (uniform, radius 1)</option>
+                                    <option value="2d_gaussian">2D Gaussian</option>
+                                    <option value="2d_gaussian_disc">2D Gaussian restricted to disc</option>
+                                </select> candidate_prob_distribution : str - probability distribution of the voter
+                                points
+                            </div>
+                            <span id="Euclidean fixed-size-warning"
+                                style="color: red; display: none; margin-left: 2.5em; font-size: 90%;">
+                                Error: Voter and candidate distributions have different dimensions.
+                            </span>
+                        </li>
+                        <li>
+                            <input type="radio" name="randomize" value="Truncated Mallows" id="Truncated Mallows">
+                            <label for="Truncated Mallows">Truncated Mallows</label>
+                            <div class="random-parameter">
+                                <input type="text" id="Truncated Mallows-dispersion" value="0.8" size="4"> dispersion :
+                                float in [0, 1] - dispersion parameter of the Mallows model
+                            </div>
+                            <div class="random-parameter">
+                                <input type="text" id="Truncated Mallows-setsize" value="3" size="4"> setsize : int -
+                                number of candidates that each voter approves
+                            </div>
+                        </li>
+                        <li>
+                            <input type="radio" name="randomize" value="Urn" id="Urn">
+                            <label for="Urn">Urn</label>
+                            <div class="random-parameter">
+                                <input type="text" id="Urn-p" value="0.5" size="4"> p : float in [0, 1] - If a new vote
+                                is generated, each candidate is approved with likelihood p.
+                            </div>
+                            <div class="random-parameter">
+                                <input type="text" id="Urn-replace" value="0.1" size="4"> replace : float - New balls
+                                added to the urn in each iteration, relative to the original number.
+                                A value of 1.0 means that in the second iteration, there is a chance of 0.5 that the
+                                ballot of the first iteration is chosen and a chance of 0.5 that a new ballot is drawn
+                                from p-IC.
+                            </div>
+                        </li>
+                        <li>
+                            <input type="radio" name="randomize" value="Urn fixed-size" id="Urn fixed-size">
+                            <label for="Urn fixed-size">Urn with fixed size</label>
+                            <div class="random-parameter">
+                                <input type="text" id="Urn fixed-size-setsize" value="3" size="4"> setsize : int -
+                                number of candidates that each voter approves
+                            </div>
+                            <div class="random-parameter">
+                                <input type="text" id="Urn fixed-size-replace" value="0.1" size="4"> replace : float -
+                                New balls added to the urn in each iteration, relative to the original number.
+                                The urn starts with (num_cand choose setsize) balls, each representing a set of
+                                candidates with size setsize. This quantity is normalized to 1.0. The replace value is a
+                                float that indicates how many balls are added using this normalization. Specifically,
+                                replace * (num_cand choose setsize) are added in each iteration.
+                            </div>
+                        </li>
+                        <li>
+                            <input type="radio" name="randomize" value="Truncated Urn" id="Truncated Urn">
+                            <label for="Truncated Urn">Truncated Urn</label>
+                            <div class="random-parameter">
+                                <input type="text" id="Truncated Urn-setsize" value="3" size="4"> setsize : int - number
+                                of candidates that each voter approves
+                            </div>
+                            <div class="random-parameter">
+                                <input type="text" id="Truncated Urn-replace" value="0.1" size="4"> replace : float -
+                                New balls added to the urn in each iteration, relative to the original number.
+                                The urn starts with num_cand factorial balls, each representing a ranking of candidates.
+                                This quantity is normalized to 1.0. The replace value is a float that indicates how many
+                                balls are added using this normalization. Specifically, replace * (num_cand factorial)
+                                are added in each iteration.
+                            </div>
+                        </li>
+                        <li>
+                            <input type="radio" name="randomize" value="Resampling" id="Resampling">
+                            <label for="Resampling">Resampling</label>
+                            <div class="random-parameter">
+                                <input type="text" id="Resampling-p" value="0.5" size="4"> p : float in [0, 1] -
+                                Fraction of candidates that will be approved by the central ballot. Precisely, the
+                                central ballot will approve the first floor(p * num_cand) candidates.
+                            </div>
+                            <div class="random-parameter">
+                                <input type="text" id="Resampling-phi" value="0.5" size="4"> phi : float in [0, 1] -
+                                Probability to resample an approval. For each generated vote, we go through all
+                                candidates. For each candidate, we copy the approval of the central ballot with
+                                probability 1 - phi. Otherwise, with probability phi, we resample the approval of the
+                                candidate (so that the generated vote approves that candidate with probability p).
+                            </div>
+                        </li>
+                        <li>
+                            <input type="radio" name="randomize" value="Disjoint Resampling" id="Disjoint Resampling">
+                            <label for="Disjoint Resampling">Disjoint Resampling</label>
+                            <div class="random-parameter">
+                                <input type="text" id="Disjoint Resampling-num_groups" value="3" size="3"> num_groups :
+                                int - Corresponds to the parameter g in (p,phi,g)-Disjoint Resampling. The model
+                                randomly partitions the candidates into num_groups groups. To generate
+                                a vote, the model first randomly selects a group. Then, it samples a vote from a
+                                (p,phi)-resampling model, where the central ballot approves exactly all candidates
+                                in the selected group. (Thus, the parameter p is not used to obtain the central
+                                ballot, but is used in case of resampling.)
+                            </div>
+                            <div class="random-parameter">
+                                <input type="text" id="Disjoint Resampling-phi" value="0.5" size="4"> phi : float in [0,
+                                1] - Probability to resample an approval.
+                                For each generated vote, we go through all candidates. For each candidate, we
+                                use copy the approval of the central ballot with probability 1 - phi. Otherwise,
+                                with probability `phi`, we resample the approval of the candidate (so that the
+                                generated vote approves that candidate with probability p).
+                            </div>
+                            <div class="random-parameter">
+                                <input type="text" id="Disjoint Resampling-p" value="0.5" size="4"> p : float in [0, 1]
+                                Probability of approving a candidate in case that the model resamples.
+                            </div>
+                        </li>
+                        <li>
+                            <input type="radio" name="randomize" value="Noise" id="Noise">
+                            <label for="Noise">Random Noise</label>
+                            <div class="random-parameter">
+                                <input type="text" id="Noise-p" value="0.5" size="4"> p : float in [0, 1] -
+                                Fraction of candidates that will be approved by the central ballot. Precisely, the
+                                central ballot will approve the first floor(p * num_cand) candidates.
+                            </div>
+                            <div class="random-parameter">
+                                <input type="text" id="Noise-phi" value="0.5" size="4"> phi : float in [0, 1] -
+                                Probability to resample an approval. For each generated vote, we go through all
+                                candidates. For each candidate, we copy the approval of the central ballot with
+                                probability 1 - phi. Otherwise, with probability phi, we resample the approval of the
+                                candidate (so that the generated vote approves that candidate with probability p).
+                            </div>
+                            <div class="random-parameter">
+                                <select id="Noise-distance">
+                                    <option value="hamming">Hamming</option>
+                                    <option value="jaccard">Jaccard</option>
+                                    <option value="zelinka">Zelinka</option>
+                                    <option value="bunke-shearer">Bunke-Shearer</option>
+                                </select> distance : string - Distance metric used to measure the distance between two
+                                rankings.
+                            </div>
+                        </li>
+                    </ul>
+                    <button onclick="modals.close()">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="hystmodal" id="committee-info-modal" aria-hidden="true">
+            <div class="hystmodal__wrap">
+                <div class="hystmodal__window" role="dialog" aria-modal="true">
+                    <button data-hystclose class="hystmodal__close">Close</button>
+                    <strong>Properties:</strong>
+                    <div id="committee-info-modal-properties-list"></div>
+                    <strong>Tied winning committees: <button id="compute-tied-committees-button">compute</button> (can be slow, computing at most 10)</strong>
+                    <pre id="committee-info-modal-all-committees"></pre>
+                    <strong>Computation log:</strong>
+                    <pre id="committee-info-modal-log"></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="hystmodal" id="export-modal" aria-hidden="true">
+            <div class="hystmodal__wrap">
+                <div class="hystmodal__window" role="dialog" aria-modal="true">
+                    <button data-hystclose class="hystmodal__close">Close</button>
+                    <strong>0/1 matrix:</strong>
+                    <pre id="matrix-export"></pre>
+                    <button id="export-matrix-button">Download</button><br>
+                    <strong>Preflib v1 .toi file:</strong>
+                    <pre id="toi-export"></pre>
+                    <button id="export-toi-button">Download</button><br>
+                    <strong>abcvoting yaml:</strong>
+                    <pre id="yaml-export"></pre>
+                    <button id="export-yaml-button">Download</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="hystmodal" id="rule-choice-modal" aria-hidden="true">
+            <div class="hystmodal__wrap">
+                <div class="hystmodal__window" role="dialog" aria-modal="true">
+                    <button data-hystclose class="hystmodal__close">Close</button>
+                    <strong>Select ABC voting rules to compute</strong>
+                    <ul id="rule-choice-list"></ul>
+                    <button onclick="modals.close()">Close</button>
+                    <button id="selectAllRulesButton">Select All</button>
+                    <button id="deselectAllRulesButton">Select None</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="hystmodal" id="library-modal" aria-hidden="true">
+            <div class="hystmodal__wrap">
+                <div class="hystmodal__window" role="dialog" aria-modal="true">
+                    <button data-hystclose class="hystmodal__close">Close</button>
+                    <strong>Library of interesting example profiles</strong>
+                    <ul id="library-list">
+                        <li><button data-num-cands="15" data-k="12" data-activate-rule="pav"
+                                data-profile="[[0, 1, 2, 3]] + [[0, 1, 2, 4]] + [[0, 1, 2, 5]] + [[6, 7, 8]] + [[9, 10, 11]] + [[12, 13, 14]]">Load</button>
+                            PAV compared to Phragmén-style rules (shown at startup)
+                            <span class="citation">Peters and Skowron, 2020, "Proportionality and the Limits of
+                                Welfarism",
+                                Introduction</span>
+                        </li>
+                        <li><button data-num-cands="7" data-k="4" data-activate-rule="pav"
+                                data-profile="[{0, 1}, {0, 1}, {0, 1}, {0, 2}, {0, 2}, {0, 2}, {0, 3}, {0, 3}, {1, 2, 5}, {4}, {5}, {6}]">Load</button>
+                            Running example used by Lackner and Skowron (2023)
+                            <span class="citation">Lackner and Skowron, 2023, "Multi-Winner
+                                Voting with Approval Preferences", Springer,
+                                Example 2.1</span>
+                        </li>
+                        <li><button data-num-cands="12" data-k="10" data-activate-rule="pav"
+                                data-profile="[[0, 10]] * 3 + [[0, 11]] * 3 + [[1, 2, 3, 4, 5, 6, 7, 8, 9]] * 14">Load</button>
+                            PAV fails core
+                            <span class="citation">Aziz et al, 2016, "Justified Representation in Approval-Based
+                                Committee Voting", Example 6</span>
+                        </li>
+                        <li><button data-num-cands="7" data-k="6" data-activate-rule="seqpav"
+                                data-profile="[{0, 1, 2, 3, 5}] + [{0, 1, 2, 4}] * 2 + [{0, 1, 2, 5}] + [{0, 1, 3, 4}] * 9 + [{0, 1, 3, 5}] * 4 + [{0, 1, 5}] * 2 + [{0, 2, 3, 4}] * 2 + [{0, 2, 3, 5}] + [{0, 2, 4}] * 5 + [{0, 2, 5}] * 8 + [{0, 3, 5}] * 3 + [{1, 2, 4}] * 2 + [{1, 2, 5}] * 6 + [{1, 3}] * 5 + [{1, 4}] * 4 + [{1, 5}] + [{2, 3}] * 5 + [{2, 4}] * 3 + [{2, 5}] + [{3}] * 7 + [{4}] * 9 + [{5}] * 9 + [{6}] * 18">Load</button>
+                            Seq-PAV fails JR (minimal example, <i>k</i> = 6, 108 voters)
+                            <span class="citation">Sánchez-Fernández et al, 2016, "<a
+                                    href="https://arxiv.org/pdf/1611.09928.pdf#page=9">Proportional Justified
+                                    Representation</a>", Table 2</span>
+                        </li>
+                        <li><button data-num-cands="14" data-k="12" data-activate-rule="seqphragmen"
+                                data-profile="[[0, 1, 2]] * 2 + [[0, 1, 3]] * 2 + [[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]] * 6 + [[3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]] * 5 + [[4, 5, 6, 7, 8, 9, 10, 11, 12, 13]] * 9">Load</button>
+                            Seq-Phragmén fails EJR
+                            <span class="citation">Brill et al, 2021, "Phragmen's Voting Methods and Justified
+                                Representation", Example 6</span>
+                        </li>
+                        <li><button data-num-cands="6" data-k="4" data-activate-rule="leximaxphragmen"
+                                data-profile="[[0]] + [[1]] + [[2]] + [[3]] + [[0, 4, 5]] + [[1, 4, 5]] + [[2, 4, 5]] + [[3, 4, 5]]">Load</button>
+                            leximax- and var-phragmen fail EJR
+                            <span class="citation">Brill et al, 2021, "Phragmen's Voting Methods and Justified
+                                Representation", Example 5</span>
+                        </li>
+                        <li><button data-num-cands="12" data-k="5" data-activate-rule="revseqpav"
+                                data-profile="[{11, 1, 3, 5}] * 4 + [{11, 2, 4, 6}] * 4 + [{1}, {2}, {3}, {4}, {5}, {6}] + [[7, 8, 9, 10, 0]] * 26">Load</button>
+                            Rev-Seq-PAV fails JR
+                            <span class="citation">Aziz, 2017, "A Note on Justified Representation Under the Reverse
+                                Sequential PAV
+                                rule", Proposition 2 for <i>k</i> = 5</span>
+                        </li>
+                        <li><button data-num-cands="5" data-k="3" data-activate-rule="seqpav"
+                                data-profile="[{0, 2, 4}] * 10 + [{0, 1, 4}] * 9 + [{0, 1}] + [{1, 3}] * 8 + [{2, 3}] * 8">Load</button>
+                            Seq-Phragmén/seq-PAV/Equal Shares fail Pareto optimality
+                            <span class="citation">Lackner and Skowron, 2020, "Utilitarian welfare and representation
+                                guarantees of approval-based multiwinner rules",
+                                Example 2</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading-container">
+            <div id="loading-indicator">Loading...</div>
+        </div>
+
+        <div id="drop-overlay">
+            <div id="drop-overlay-instruction">Drop a file to import. Supported formats:
+                <ul>
+                    <li>matrix .txt</li>
+                    <li>preflib (.soi, .toi, .soc, .toc)</li>
+                    <li>.abc.yaml</li>
+                </ul>
+            </div>
+        </div>
+
+
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
+        <script type="text/javascript" src="imports/highs.js"></script>
+        <script src="imports/hystmodal.min.js"></script>
+        <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
+        <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.js"></script>
+        <script src="js/abcvoting.js" type="module"></script>
+</body>
+
+</html>
