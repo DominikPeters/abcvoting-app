@@ -33,9 +33,9 @@ export function readURL() {
     if (window.location.search) {
         try {
             let stateString = window.location.search.substring(1);
-            let state = stateString.split("&");
-            let matrix = state.slice(1).join("\n");
-            let committeeSize_ = parseInt(state[0]);
+            let info = stateString.split("&");
+            let matrix = info.slice(1).join("\n");
+            let committeeSize_ = parseInt(info[0]);
             state.committeeSize = committeeSize_;
             if (!loadMatrix(matrix)) {
                 loadStandardInstance();
