@@ -11,13 +11,41 @@ export function buildTable() {
         return;
     }
     previousComputation = thisComputation;
-
+    
     var table = document.getElementById("profile-table");
     table.replaceChildren(); // clear table
     // header row
     var header = table.createTHead();
     var row = header.insertRow(0);
     var cell = row.insertCell(0);
+    var cellWeightHeader = row.insertCell();
+    cellWeightHeader.innerHTML = "Weight";
+    cellWeightHeader.classList.add('hidden-column')
+    var styleElement = document.createElement('style');
+    document.head.appendChild(styleElement);
+
+    // Define the CSS rule for the hidden-column class
+    var cssRule = '.hidden-column { display: none; }';
+
+    // Append the CSS rule to the <style> element
+    styleElement.sheet.insertRule(cssRule);
+    var useWeights = document.getElementById("weights");
+    console.log("weights " +useWeights.value )
+    useWeights.addEventListener("click", function () {
+        console.log("clicked!")
+        var weightCells = document.getElementsByClassName("weight-cell");
+        for (var i = 0; i < weightCells.length; i++) {
+            if (weightCells[i].children[0].value != 1){
+                alert("Weight values must be set to 1 in order to remove them")
+                return;
+            }
+        }
+        for (var i = 0; i < weightCells.length; i++) {
+            var cell = weightCells[i].classList.toggle("hidden-column");
+        }
+        cellWeightHeader.classList.toggle("hidden-column");
+    })
+
     for (var j of state.C) {
         var cell = row.insertCell();
         cell.innerHTML = j;
@@ -30,6 +58,7 @@ export function buildTable() {
             });
         }
     }
+
     row.insertCell().className = "empty-cell";
     // voter rows
     var tablebody = table.createTBody();
@@ -38,6 +67,7 @@ export function buildTable() {
         row.classList.add("voter-row");
         var cell = row.insertCell();
         cell.innerHTML = "Voter " + (i + 1);
+       
         // allow deletion of last voter
         if (state.N.length > 1 && i == state.N.slice(-1)[0]) {
             row.classList.add("last-voter");
@@ -47,6 +77,25 @@ export function buildTable() {
                 deleteVoter(this.dataset.voter);
             });
         }
+        
+        var weightCell = row.insertCell();
+        weightCell.classList.add("weight-cell");
+        weightCell.classList.add("hidden-column");
+        weightCell.id = "voter"+ i + "-weight"
+        var weightInput = document.createElement("input");
+        weightInput.type = "number";
+        weightInput.min = 1;
+        weightInput.value =1; // Set the initial value to the respective voter's weight
+        weightInput.dataset.voter = i; // Store the voter index for later reference
+        weightInput.addEventListener("change", function () {
+            if (this.value < 1) { // Check if input value is less than 0
+                this.value = 0; // Set input value to 0 if less than 0
+            }
+            this.value = parseInt(this.value)
+            //state.weights[this.dataset.voter] = this.value; // Update the state with the new weight value
+        });
+        weightInput.style.width = "50px"
+        weightCell.appendChild(weightInput);
         for (var j of state.C) {
             var cell = row.insertCell();
             cell.id = "voter" + i + "-candidate" + j + "-cell";
