@@ -5,7 +5,7 @@ try:
 except ImportError:
     from fractions import Fraction
 import functools
-import networkx as nx
+# import networkx as nx
 from abcvoting.misc import hamming
 
 
@@ -385,6 +385,7 @@ def monroescore(profile, committee):
 
 
 def monroescore_matching(profile, committee):
+    return 0
     """
     Return Monroe score of a given committee.
 
@@ -429,6 +430,7 @@ def monroescore_matching(profile, committee):
 
 
 def monroescore_flowbased(profile, committee):
+    return 0
     """
     Return Monroe score of a given committee.
 

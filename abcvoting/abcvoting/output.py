@@ -18,6 +18,7 @@ The default verbosity is `WARNING`.
 """
 
 import textwrap
+import js
 
 # should match the values defined in the logging module!
 CRITICAL = 50
@@ -103,6 +104,8 @@ class Output:
                     ]
                 )
             print(msg)
+
+        js.logger(verbosity, msg)
 
         if self.logger:
             self.logger.log(verbosity if verbosity not in (DETAILS, DEBUG2) else DEBUG, msg)

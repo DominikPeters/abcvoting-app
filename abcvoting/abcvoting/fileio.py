@@ -112,14 +112,14 @@ def _approval_set_from_preflib_datastructures(num_appr, ranking, candidate_map):
     return approval_set
 
 
-def read_preflib_file(filename, setsize=1, relative_setsize=None, use_weights=False):
+def read_preflib_file(text, setsize=1, relative_setsize=None, use_weights=False):
     """
     Read a Preflib file (soi, toi, soc or toc).
 
     Parameters
     ----------
-        filename : str
-            Name of the Preflib file.
+        text : str
+            File contents.
 
         setsize : int
             Minimum number of candidates that voters approve.
@@ -152,29 +152,29 @@ def read_preflib_file(filename, setsize=1, relative_setsize=None, use_weights=Fa
         raise ValueError("Parameter setsize must be > 0")
     if relative_setsize and (relative_setsize <= 0.0 or relative_setsize > 1.0):
         raise ValueError("Parameter relative_setsize not in interval (0, 1]")
-    with open(filename) as f:
-        line = f.readline()
-        num_cand = int(line.strip())
-        candidate_map = {}
-        for _ in range(num_cand):
-            parts = f.readline().strip().split(",")
-            candidate_map[int(parts[0].strip())] = ",".join(parts[1:]).strip()
+    f = [line.strip() for line in text.splitlines() if line.strip()]
+    line = f.pop(0)
+    num_cand = int(line.strip())
+    candidate_map = {}
+    for _ in range(num_cand):
+        parts = f.pop(0).strip().split(",")
+        candidate_map[int(parts[0].strip())] = ",".join(parts[1:]).strip()
 
-        parts = f.readline().split(",")
-        try:
-            voter_count, _, unique_orders = (int(p.strip()) for p in parts)
-        except ValueError as error:
-            raise MalformattedFileException(
-                f"Number of voters ill specified ({str(parts)}), should be triple of integers"
-            ) from error
+    parts = f.pop(0).split(",")
+    try:
+        voter_count, _, unique_orders = (int(p.strip()) for p in parts)
+    except ValueError as error:
+        raise MalformattedFileException(
+            f"Number of voters ill specified ({str(parts)}), should be triple of integers"
+        ) from error
 
-        approval_sets = []
-        lines = [line.strip() for line in f.readlines() if line.strip()]
-        if len(lines) != unique_orders:
-            raise MalformattedFileException(
-                f"Expected {unique_orders} lines that specify voters in the input, "
-                f"encountered {len(lines)}"
-            )
+    approval_sets = []
+    lines = f
+    if len(lines) != unique_orders:
+        raise MalformattedFileException(
+            f"Expected {unique_orders} lines that specify voters in the input, "
+            f"encountered {len(lines)}"
+        )
 
     for line in lines:
         parts = line.split(",")
@@ -263,37 +263,35 @@ def read_preflib_files_from_dir(dir_name, setsize=1, relative_setsize=None):
     return profiles
 
 
-def write_profile_to_preflib_toi_file(filename, profile):
+def write_profile_to_preflib_toi_file(profile):
     """
     Write a profile to a Preflib .toi file.
 
     Parameters
     ----------
-        filename : str
-            File name of the Preflib file.
-
         profile : abcvoting.preferences.Profile
             Profile to be written.
 
     Returns
     -------
-        None
+        File as string
     """
-    with open(filename, "w") as f:
-        # write: number of candidates
-        f.write(str(profile.num_cand) + "\n")
-        # write: names of candidates
-        for cand in profile.candidates:
-            f.write(f"{cand + 1}, {profile.cand_names[cand]}\n")
-        # write: info about number of voters and total weight
-        total_weight = sum(voter.weight for voter in profile)
-        f.write(f"{total_weight}, {total_weight}, {len(profile)}\n")
-        # write: approval sets and weights
-        for voter in profile:
-            str_approval_set = misc.str_set_of_candidates(
-                voter.approved, cand_names=list(range(1, profile.num_cand + 1))
-            )
-            f.write(f"{voter.weight}, {str_approval_set}\n")
+    lines = []
+    # write: number of candidates
+    lines.append(str(profile.num_cand) + "\n")
+    # write: names of candidates
+    for cand in profile.candidates:
+        lines.append(f"{cand + 1}, {profile.cand_names[cand]}\n")
+    # write: info about number of voters and total weight
+    total_weight = sum(voter.weight for voter in profile)
+    lines.append(f"{total_weight}, {total_weight}, {len(profile)}\n")
+    # write: approval sets and weights
+    for voter in profile:
+        str_approval_set = misc.str_set_of_candidates(
+            voter.approved, cand_names=list(range(1, profile.num_cand + 1))
+        )
+        lines.append(f"{voter.weight}, {str_approval_set}\n")
+    return "".join(lines)
 
 
 def _yaml_flow_style_list(x):
@@ -302,14 +300,14 @@ def _yaml_flow_style_list(x):
     return yamllist
 
 
-def read_abcvoting_yaml_file(filename):
+def read_abcvoting_yaml_file(text):
     """
     Read contents of an abcvoting yaml file (ending with .abc.yaml).
 
     Parameters
     ----------
-        filename : str
-            File name of the .abc.yaml file.
+        text : str
+            File contents.
 
     Returns
     -------
@@ -328,10 +326,9 @@ def read_abcvoting_yaml_file(filename):
             The YAML data from `filename`.
     """
     yaml = ruamel.yaml.YAML(typ="safe", pure=True)
-    with open(filename) as inputfile:
-        data = yaml.load(inputfile)
+    data = yaml.load(text)
     if "profile" not in data.keys():
-        raise MalformattedFileException(f"{filename} does not contain a profile.")
+        raise MalformattedFileException("File does not contain a profile.")
     if "num_cand" in data.keys():
         num_cand = int(data["num_cand"])
     else:
@@ -342,7 +339,7 @@ def read_abcvoting_yaml_file(filename):
         weights = data["voter_weights"]
         if len(weights) != len(approval_sets):
             raise MalformattedFileException(
-                f"{filename}: the number of voters differs from the number of voter weights."
+                f"The number of voters differs from the number of voter weights."
             )
         for appr_set, weight in zip(approval_sets, weights):
             profile.add_voter(Voter(appr_set, weight=weight))
@@ -377,16 +374,25 @@ def read_abcvoting_yaml_file(filename):
     return profile, committeesize, compute_instances, data
 
 
+class MyLogger:
+    def __init__(self):
+        self.lines = []
+
+    def write(self, s):
+        self.lines.append(s)
+
+    def get_str(self):
+        return b"".join(self.lines).decode("utf-8")
+
+
 def write_abcvoting_instance_to_yaml_file(
-    filename, profile, committeesize=None, compute_instances=None, description=None
+    profile, committeesize=None, compute_instances=None, description=None
 ):
     """
     Write abcvoting instance to an abcvoting yaml file.
 
     Parameters
     ----------
-        filename : str
-            File name of the .abc.yaml file.
 
         profile : abcvoting.preferences.Profile
             A profile.
@@ -447,7 +453,8 @@ def write_abcvoting_instance_to_yaml_file(
 
         data["compute"] = modified_computed_instances
 
+    log_yaml = MyLogger()
     yaml = ruamel.yaml.YAML()
     yaml.width = 120
-    with open(filename, "w") as outfile:
-        yaml.dump(data, outfile)
+    yaml.dump(data, log_yaml)
+    return log_yaml.get_str()
