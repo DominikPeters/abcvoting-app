@@ -78,15 +78,12 @@ def _optimize_rule_gurobi(
     while True:
         model.optimize()
 
-        if model.Status not in [2, 3, 4]:
-            # model.Status == 2 implies solution found
-            # model.Status in [3, 4] implies infeasible --> no more solutions
-            # otherwise ...
+        if model.Status not in [gb.GRB.OPTIMAL, gb.GRB.INFEASIBLE]:
             raise RuntimeError(
                 f"Gurobi returned an unexpected status code: {model.Status}\n"
                 f"Warning: solutions may be incomplete or not optimal (model {name})."
             )
-        if model.Status != 2:
+        if model.Status != gb.GRB.OPTIMAL:
             if len(committees) == 0:
                 # we are in the first round of searching for committees
                 # and Gurobi didn't find any
@@ -172,7 +169,7 @@ def _gurobi_thiele_methods(
                 utility[(voter, x)] = model.addVar(vtype=gb.GRB.BINARY, name=f"utility({i,x})")
 
         # constraint: the committee has the required size
-        model.addConstr(gb.quicksum(in_committee) == committeesize)
+        model.addConstr(in_committee.sum() == committeesize)
 
         # constraint: utilities are consistent with actual committee
         for voter in profile:
@@ -237,7 +234,7 @@ def _gurobi_lexcc(profile, committeesize, resolute, max_num_of_committees):
                 utility[(voter, x)] = model.addVar(vtype=gb.GRB.BINARY, name=f"utility({i, x})")
 
         # constraint: the committee has the required size
-        model.addConstr(gb.quicksum(in_committee) == committeesize)
+        model.addConstr(in_committee.sum() == committeesize)
 
         # constraint: utilities are consistent with actual committee
         for voter in profile:
@@ -560,6 +557,56 @@ def _gurobi_leximaxphragmen(profile, committeesize, resolute, max_num_of_committ
     return sorted_committees(committees)
 
 
+def _gurobi_maximin_support_scorefct(profile, base_committee):
+    """Uses an LP to compute the maximin support values obtained when adding any
+    candidate to the committee.
+
+    Based on the LP described in the proof of Theorem 4.2 of
+    L. Sánchez-Fernández et al.
+    "The maximin support method: an extension of the D'Hondt method to
+    approval-based multiwinner elections"
+    Mathematical Programming (2022)
+    """
+
+    scores = [0] * profile.num_cand
+    remaining_candidates = [cand for cand in profile.candidates if cand not in base_committee]
+
+    for added_cand in remaining_candidates:
+        committee = set(base_committee) | {added_cand}
+
+        model = gb.Model()
+        _set_gurobi_model_parameters(model)
+
+        minimum = model.addVar(lb=0, name="minimum")  # named "s" in the paper
+
+        f = model.addVars(len(profile), profile.num_cand, lb=0, name="fractional_assignment")
+        for vi, voter in enumerate(profile):
+            if voter.approved & committee:
+                model.addConstr(
+                    gb.quicksum(f[vi, cand] for cand in voter.approved & committee) == voter.weight
+                )
+
+        for cand in committee:
+            model.addConstr(
+                gb.quicksum(
+                    f[vi, cand] for vi, voter in enumerate(profile) if cand in voter.approved
+                )
+                >= minimum
+            )
+
+        model.setObjective(minimum, gb.GRB.MAXIMIZE)
+        model.optimize()
+        if model.status != gb.GRB.OPTIMAL:
+            raise RuntimeError(
+                f"Gurobi returned an unexpected status code: {model.Status}"
+                " while computing the maximin support score."
+            )
+
+        scores[added_cand] = minimum.x
+
+    return scores
+
+
 def _gurobi_minimaxav(profile, committeesize, resolute, max_num_of_committees):
     def set_opt_model_func(model, in_committee):
         max_hamming_distance = model.addVar(
@@ -616,7 +663,7 @@ def _gurobi_lexminimaxav(profile, committeesize, resolute, max_num_of_committees
                     voteratmostdistances[(i, dist)] = 0
 
         # constraint: the committee has the required size
-        model.addConstr(gb.quicksum(in_committee) == committeesize)
+        model.addConstr(in_committee.sum() == committeesize)
 
         # constraint: distances are consistent with actual committee
         for i, voter in enumerate(profile):

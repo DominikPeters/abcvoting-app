@@ -1,21 +1,23 @@
 [![DOI](https://zenodo.org/badge/192713860.svg)](https://zenodo.org/badge/latestdoi/192713860)
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.04880/status.svg)](https://doi.org/10.21105/joss.04880)
-[![MIT License](https://badgen.net/github/license/martinlackner/abcvoting)](https://choosealicense.com/licenses/mit/)
 [![PyPi](https://badgen.net/pypi/v/abcvoting)](https://pypi.org/project/abcvoting/)
 ![Python versions](https://badgen.net/pypi/python/abcvoting)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Build badge](https://github.com/martinlackner/abcvoting/workflows/Build/badge.svg)](https://github.com/martinlackner/abcvoting/actions)
 [![Unittests badge](https://github.com/martinlackner/abcvoting/workflows/Unittests/badge.svg)](https://github.com/martinlackner/abcvoting/actions)
-[![codecov](https://codecov.io/gh/martinlackner/abcvoting/branch/master/graph/badge.svg)](https://codecov.io/gh/martinlackner/abcvoting)
 [![docs](https://readthedocs.org/projects/abcvoting/badge/?version=latest&style=plastic)](https://abcvoting.readthedocs.io/en/latest/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![codecov](https://codecov.io/gh/martinlackner/abcvoting/branch/master/graph/badge.svg)](https://codecov.io/gh/martinlackner/abcvoting)
 
 # abcvoting
 
+> [!NOTE]
 > - [**Documentation**](https://abcvoting.readthedocs.io/)
 > - [**Installation**](https://abcvoting.readthedocs.io/en/latest/installation.html)  
 > - [**How to cite the abcvoting library**](https://abcvoting.readthedocs.io/en/latest/howtocite.html)
 > - [**Acknowledgements and contributors**](https://abcvoting.readthedocs.io/en/latest/acks.html)
+> - [**► abcvoting web app**](https://pref.tools/abcvoting/)
 
+For an overview of other software tools related to Computational Social Choice, see the [COMSOC community page](https://comsoc-community.org/tools).
 
 ## A Python library of approval-based committee (ABC) rules
 
@@ -70,6 +72,9 @@ In addition, one can verify axiomatic properties such as
 
 * The core property
 
+Instead of using the abcvoting Python library, you can also use the 
+[**abcvoting web application**](https://pref.tools/abcvoting/) by Dominik Peters
+(which is based on this Python library).
 
 ## Installation
 
@@ -87,7 +92,7 @@ Install all dependencies including development requirements and the abcvoting pa
 [development mode](https://setuptools.readthedocs.io/en/latest/userguide/development_mode.html):
 
 ```bash
-pip install -e .[dev]
+pip install -e ".[dev]"
 ```
 
 Basic unit tests can be run by excluding tests which require additional dependencies:

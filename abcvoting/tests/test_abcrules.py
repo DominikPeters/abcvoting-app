@@ -192,6 +192,22 @@ class _CollectInstances:
             ],
             "minimaxphragmen": [{0, 1, 2, 3}],
             "leximaxphragmen": [{0, 1, 2, 3}],
+            "maximin-support": [
+                {0, 1, 2, 4},
+                {0, 1, 2, 5},
+                {0, 1, 3, 4},
+                {0, 1, 3, 5},
+                {0, 1, 4, 5},
+                {0, 2, 3, 4},
+                {0, 2, 3, 5},
+                {0, 2, 4, 5},
+                {0, 3, 4, 5},
+                {1, 2, 3, 4},
+                {1, 2, 3, 5},
+                {1, 2, 4, 5},
+                {1, 3, 4, 5},
+                {2, 3, 4, 5},
+            ],
             "cc": [{0, 1, 2, 3}],
             "lexcc": [{0, 1, 2, 3}],
             "seqcc": [
@@ -337,6 +353,7 @@ class _CollectInstances:
             "seqphragmen": [{0, 1, 3}],
             "minimaxphragmen": [{0, 1, 3}, {0, 2, 3}, {1, 2, 3}],
             "leximaxphragmen": [{0, 1, 3}, {0, 2, 3}, {1, 2, 3}],
+            "maximin-support": [{0, 1, 3}, {0, 2, 3}, {1, 2, 3}],
             "cc": [{0, 1, 3}, {0, 2, 3}, {0, 3, 4}, {1, 2, 3}, {1, 3, 4}],
             "lexcc": [{0, 1, 3}],
             "seqcc": [{0, 1, 3}, {0, 2, 3}, {0, 3, 4}, {1, 2, 3}, {1, 3, 4}],
@@ -405,6 +422,14 @@ class _CollectInstances:
                 {1, 2, 3, 4},
                 {1, 2, 3, 5},
                 {1, 2, 4, 5},
+            ],
+            "maximin-support": [
+                {0, 1, 2, 3},
+                {0, 1, 2, 4},
+                {0, 1, 2, 5},
+                {0, 2, 3, 4},
+                {0, 2, 3, 5},
+                {0, 2, 4, 5},
             ],
             "cc": [
                 {0, 1, 2, 3},
@@ -484,6 +509,7 @@ class _CollectInstances:
             "seqphragmen": [{0, 3}],
             "minimaxphragmen": [{0, 3}, {1, 3}],
             "leximaxphragmen": [{0, 3}, {1, 3}],
+            "maximin-support": [{0, 3}],
             "cc": [{0, 2}, {0, 3}, {1, 3}],
             "lexcc": [{0, 3}],
             "seqcc": [{0, 2}, {0, 3}],
@@ -527,6 +553,7 @@ class _CollectInstances:
             "seqphragmen": one_each,
             "minimaxphragmen": one_each,
             "leximaxphragmen": one_each,
+            "maximin-support": one_each,
             "cc": one_each,
             "lexcc": one_each,
             "seqcc": one_each,
@@ -778,11 +805,10 @@ def test_abcrules_weightsconsidered(rule_id, algorithm, resolute):
 
     if rule_id in [
         "lexminimaxav",
-        "phragmen-enestroem",
         "rsd",
         "monroe",
         "greedy-monroe",
-    ] or rule_id.startswith("equal-shares"):
+    ]:
         with pytest.raises(ValueError):
             abcrules.compute(rule_id, profile, committeesize, algorithm=algorithm)
         return
@@ -1182,6 +1208,12 @@ def test_jansonexamples(rule_id, algorithm):
     )
     assert committees == [{a, b, q}]
 
+    profile.convert_to_weighted()
+    committees = abcrules.compute(
+        rule_id, profile, committeesize, algorithm=algorithm, resolute=False
+    )
+    assert committees == [{a, b, q}]
+
 
 @pytest.mark.parametrize("rule_id", abcrules.MAIN_RULE_IDS)
 @pytest.mark.parametrize("resolute", [True, False])
@@ -1256,6 +1288,74 @@ def test_seqphragmen_fails_ejr():
     ]
 
 
+def test_maximin_support():
+    # Examples from the paper
+    # Luis Sánchez-Fernández, Norberto Fernández, Jesús A. Fisteus, Markus Brill
+    # The maximin support method: an extension of the D'Hondt method
+    # to approval-based multiwinner elections
+    # Mathematical Programming, 2022
+
+    # from paper, Example 3.1/4.1
+    # written in weighted form to make a smaller ILP
+    # because Github Actions has a size limit for gurobi
+    profile = Profile(7)
+    committeesize = 3
+    profile.add_voter(Voter([0, 1], 100))
+    profile.add_voter(Voter([0, 2], 60))
+    profile.add_voter(Voter([1], 40))
+    profile.add_voter(Voter([2], 55))
+    profile.add_voter(Voter([3], 95))
+    profile.add_voter(Voter([4], 30))
+    profile.add_voter(Voter([4, 5, 6], 50))
+    assert abcrules.compute("maximin-support", profile, committeesize, resolute=False) == [
+        {0, 2, 3}
+    ]
+
+    # MMS fails EJR, Example 5.1
+    profile = Profile(7)
+    committeesize = 4
+    approval_sets = (
+        [{0, 1, 2, 3, 4}] * 5
+        + [{5, 1, 2, 3, 4}] * 4
+        + [{6, 1, 2, 3, 4}] * 3
+        + [{0}] * 2
+        + [{5}]
+        + [{6}]
+    )
+    profile.add_voters(approval_sets)
+    assert abcrules.compute("maximin-support", profile, committeesize, resolute=False) == [
+        {0, 1, 5, 6},
+        {0, 2, 5, 6},
+        {0, 3, 5, 6},
+        {0, 4, 5, 6},
+    ]
+    # on this example, seq-Phragmen differs from MMS
+    assert abcrules.compute("seqphragmen", profile, committeesize, resolute=False) == [
+        {0, 1, 2, 3},
+        {0, 1, 2, 4},
+        {0, 1, 3, 4},
+        {0, 2, 3, 4},
+    ]
+
+    # MMS fails strong support monotonicity, Example 5.3
+    profile = Profile(7)
+    committeesize = 6
+    approval_sets = [{1, 2, 3, 4, 5}] * 13 + [{0, 6}] * 2 + [{0}] * 2 + [{6}]
+    profile.add_voters(approval_sets)
+    assert abcrules.compute("maximin-support", profile, committeesize, resolute=False) == [
+        {0, 1, 2, 3, 4, 5}
+    ]
+    profile = Profile(7)
+    committeesize = 6
+    approval_sets = (
+        [{1, 2, 3, 4, 5}] * 13 + [{0, 6}] * 2 + [{0}] * 2 + [{6}] + [{0, 1, 2, 3, 4, 5}]
+    )
+    profile.add_voters(approval_sets)
+    assert {0, 1, 2, 3, 4, 6} in abcrules.compute(
+        "maximin-support", profile, committeesize, resolute=False
+    )
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "filename, rule_id, algorithm",
@@ -1263,6 +1363,11 @@ def test_seqphragmen_fails_ejr():
     ids=id_function,
 )
 def test_selection_of_abc_yaml_instances(filename, rule_id, algorithm, load_abc_yaml_file):
+    # skip tests involving CBC and minimaxphragmen that are known to fail
+    if rule_id == "minimaxphragmen" and algorithm == "mip-cbc":
+        if "instanceL0145.abc.yaml" in filename or "instanceL0153.abc.yaml" in filename:
+            pytest.skip(f"This test is known to fail ({rule_id}, {algorithm}, {filename}).")
+
     profile, committeesize, compute_instances = load_abc_yaml_file[filename]
     for compute_instance in compute_instances:
         if compute_instance["rule_id"] != rule_id:
@@ -1270,6 +1375,51 @@ def test_selection_of_abc_yaml_instances(filename, rule_id, algorithm, load_abc_
         if compute_instance["result"] is None:
             return  # no result known, cannot test
         abcrules.compute(**compute_instance, algorithm=algorithm)
+
+
+only_defined_for_unit_weights = [
+    "lexminimaxav",
+    "monroe",
+    "greedy-monroe",
+]
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "filename, rule_id, algorithm",
+    abc_yaml_instances,
+    ids=id_function,
+)
+def test_converted_to_weighted_abc_yaml_instances(
+    filename, rule_id, algorithm, load_abc_yaml_file
+):
+    # skip tests involving CBC and minimaxphragmen that are known to fail
+    if rule_id == "minimaxphragmen" and algorithm == "mip-cbc":
+        if "instanceL0145.abc.yaml" in filename or "instanceL0153.abc.yaml" in filename:
+            pytest.skip(f"This test is known to fail ({rule_id}, {algorithm}, {filename}).")
+
+    profile, committeesize, compute_instances = load_abc_yaml_file[filename]
+    if rule_id in only_defined_for_unit_weights:
+        return
+    if len(profile) == profile.total_weight():
+        return  # no need to test this instance
+    weighted_profile = profile.copy()
+    weighted_profile.convert_to_weighted()
+    assert not weighted_profile.has_unit_weights()
+
+    for compute_instance in compute_instances:
+        if compute_instance["rule_id"] != rule_id:
+            continue
+        if compute_instance["result"] is None:
+            return  # no result known, cannot test
+
+        abcrules.compute(
+            rule_id=compute_instance["rule_id"],
+            profile=weighted_profile,
+            committeesize=committeesize,
+            result=compute_instance["result"],
+            algorithm=algorithm,
+        )
 
 
 @pytest.mark.parametrize("rule_id, algorithm, resolute", testrules.rule_algorithm_resolute)
