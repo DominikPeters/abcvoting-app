@@ -10,11 +10,11 @@ export function populateLibraryModal() {
             let result = JSON.parse(window.pyodide.runPython(`
                 profile = Profile(num_cand=${numCands})
                 profile.add_voters(${this.dataset.profile})
-                u = {j : {i : 0 for i in range(profile.totalweight())} for j in range(${numCands})}
+                u = {j : {i : 0 for i in range(len(profile))} for j in range(${numCands})}
                 for i, voter in enumerate(profile):
                     for candidate in voter.approved:
                         u[candidate][i] = 1
-                json.dumps({"n" : profile.totalweight(), "u" : u})
+                json.dumps({"n" : len(profile), "u" : u})
             `));
             let u_ = result.u;
             let N_ = Array.from(Array(result.n).keys());

@@ -1,0 +1,34 @@
+**********
+Example 10
+**********
+
+As of now, lexmin-Phragmen is not implemented.
+Using opt-Phragmen instead (without lexicographic order).
+
+-----------------------------------------
+Input (election instance from Example 1):
+-----------------------------------------
+
+profile with 12 voters and 8 candidates:
+ 3 x {a, b},
+ 3 x {a, c},
+ 2 x {a, d},
+ 1 x {b, c, f},
+ 1 x {e},
+ 1 x {f},
+ 1 x {g}
+
+------------------------------------------
+Phragmén's Minimax Rule (minimax-Phragmén)
+------------------------------------------
+
+Algorithm: Gurobi ILP solver
+
+5 winning committees:
+ {a, b, c, d}
+ {a, b, c, f}
+ {a, b, d, f}
+ {a, c, d, f}
+ {b, c, d, f}
+
+Note: only committee {a, b, c, f} wins according to lexmin-Phragmen.
