@@ -87,10 +87,8 @@ setuptools.setup(
     setup_requires=["wheel"],
     install_requires=[
         "networkx[default]>=2.6.3",
-        "mip>=1.14.0",
         "ruamel.yaml>=0.17",
         "numpy>=1.21",
-        "gurobipy>=11.0",
         "preflibtools>=2.0.12",
         "prefsampling>=0.1.15",
     ],
