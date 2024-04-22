@@ -102,7 +102,7 @@ def _check_pareto_optimality_pulp(profile, committee):
 
     raise RuntimeError(f"Pulp returned an unexpected status code: {status}")
 
-def _check_EJR_pulp(profile, committee):
+def _check_EJR_pulp(profile, committee, quota):
     """
     Test, by an ILP and the pulp solver, whether a committee satisfies EJR.
 
@@ -139,7 +139,7 @@ def _check_EJR_pulp(profile, committee):
     in_group = [pulp.LpVariable(f"in_group_{i}", cat="Binary") for i in range(len(profile))]
 
     # constraints: size of ell-cohesive group should be appropriate wrt. ell
-    model += pulp.lpSum(in_group) >= ell * len(profile) / len(committee)
+    model += pulp.lpSum(in_group) >= ell * quota
 
     # constraints based on binary indicator variables:
     # if voter is in ell-cohesive group, then the voter should have
@@ -189,7 +189,7 @@ def _check_EJR_pulp(profile, committee):
 
     raise RuntimeError(f"Pulp returned an unexpected status code: {status}")
 
-def _check_PJR_pulp(profile, committee):
+def _check_PJR_pulp(profile, committee, quota):
     """
     Test with a Pulp ILP whether a committee satisfies PJR.
 
@@ -238,7 +238,7 @@ def _check_PJR_pulp(profile, committee):
         in_group[i] = pulp.LpVariable(f"in_group_{i}", cat='Binary')
 
     # constraint: size of ell-cohesive group should be appropriate wrt ell
-    model += pulp.lpSum(in_group.values()) >= ell * len(profile) / len(committee)
+    model += pulp.lpSum(in_group.values()) >= ell * quota
 
     # binary variables: indicate whether a candidate is in the intersection
     # of approved candidates over voters inside the group

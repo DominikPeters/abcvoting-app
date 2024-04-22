@@ -1362,246 +1362,6 @@ def _check_priceability_gurobi(profile, committee, stable=False):
     else:
         raise RuntimeError(f"Gurobi returned an unexpected status code: {model.Status}")
 
-def check_FJR(profile, committee, algorithm="fastest", committeesize=None):
-    """
-    Test whether a committee satisfies Full Justified Representation (FJR).
-
-    Parameters
-    ----------
-    profile : abcvoting.preferences.Profile
-        A profile.
-    committee : iterable of int
-        A committee.
-    algorithm : str, optional
-        The algorithm to be used.
-
-    Returns
-    -------
-    bool
-
-    References
-    ----------
-    Multi-Winner Voting with Approval Preferences.
-    Martin Lackner and Piotr Skowron.
-    <http://dx.doi.org/10.1007/978-3-031-09016-5>
-    """
-
-    # check that `committee` is a valid input
-    committee = CandidateSet(committee, num_cand=profile.num_cand)
-
-    if algorithm == "fastest":
-        algorithm = "pulp"
-
-    if algorithm == "brute-force":
-        result, detailed_information = _check_FJR_brute_force(profile, committee)
-    elif algorithm == "gurobi":
-        result, detailed_information = _check_FJR_gurobi(profile, committee)
-    elif algorithm == "pulp":
-        result, detailed_information = _check_FJR_pulp(profile, committee)
-    else:
-        raise NotImplementedError("Algorithm " + str(algorithm) + " not specified for check_FJR")
-
-    if result:
-        output.info(f"Committee {str_set_of_candidates(committee)} satisfies FJR.")
-    else:
-        output.info(f"Committee {str_set_of_candidates(committee)} does not satisfy FJR.")
-        ell = detailed_information["ell"]
-        beta = detailed_information["beta"]
-        cands = detailed_information["joint_candidates"]
-        cohesive_group = detailed_information["cohesive_group"]
-        output.details(
-            f"(The weakly cohesive group of voters {str_set_of_candidates(cohesive_group)}"
-            f"({len(cohesive_group)/len(profile)*100:.1f}% of all voters)"
-            f"each approve at least {beta} of the {ell} candidates {str_set_of_candidates(cands)},"
-            f"but all approve at most {beta - 1} candidates in the committee.)",
-            indent=" ",
-        )
-    return result
-
-
-def _check_FJR_brute_force(profile, committee):
-    """Test using brute-force whether a committee satisfies FJR.
-
-    Parameters
-    ----------
-    profile : abcvoting.preferences.Profile
-        approval sets of voters
-    committee : set
-        set of candidates
-
-    Returns
-    -------
-    bool
-
-    References
-    ----------
-    Multi-Winner Voting with Approval Preferences.
-    Martin Lackner and Piotr Skowron.
-    <http://dx.doi.org/10.1007/978-3-031-09016-5>
-    """
-
-    committeesize = len(committee)
-
-    committee_utility_at_most = {
-        utility: set(voter for voter in profile if len(voter.approved & committee) <= utility)
-        for utility in range(len(committee) + 1)
-    }
-
-    for T in powerset(profile.approved_candidates(), max_size=committeesize):
-        T = set(T)
-        T_utility_at_least = {
-            utility: set(voter for voter in profile if len(voter.approved & T) >= utility)
-            for utility in range(len(T) + 1)
-        }
-        for beta in range(1, len(T) + 1):
-            # find set of voters who have utility at least beta in T
-            # and utility at most beta-1 in committee
-            cohesive_group = T_utility_at_least[beta] & committee_utility_at_most[beta - 1]
-
-            # is coalition large enough to deserve |T| seats?
-            if len(cohesive_group) * committeesize >= len(T) * len(profile):
-                detailed_information = {
-                    "ell": len(T),
-                    "beta": beta,
-                    "joint_candidates": T,
-                    "cohesive_group": cohesive_group,
-                }
-                return False, detailed_information
-
-    detailed_information = {}
-    return True, detailed_information
-
-
-def _check_FJR_gurobi(profile, committee):
-    """Test, by an ILP and the Gurobi solver, whether a committee satisfies FJR.
-
-    Parameters
-    ----------
-    profile : abcvoting.preferences.Profile
-        approval sets of voters
-    committee : set
-        set of candidates
-
-    Returns
-    -------
-    bool
-
-    References
-    ----------
-    Multi-Winner Voting with Approval Preferences.
-    Martin Lackner and Piotr Skowron.
-    <http://dx.doi.org/10.1007/978-3-031-09016-5>
-    """
-
-    committeesize = len(committee)
-
-    model = gb.Model()
-
-    set_of_voters = model.addVars(range(len(profile)), vtype=gb.GRB.BINARY)
-    set_of_candidates = model.addVars(range(profile.num_cand), vtype=gb.GRB.BINARY)
-    beta = model.addVar(lb=1, ub=committeesize, vtype=gb.GRB.INTEGER)
-    model.addConstr(beta <= set_of_candidates.sum())
-
-    # coalition large enough to deserve |set_of_candidates| seats
-    model.addConstr(
-        gb.quicksum(set_of_candidates) * len(profile) <= gb.quicksum(set_of_voters) * committeesize
-    )
-    model.addConstr(gb.quicksum(set_of_voters) >= 1)
-    for i, voter in enumerate(profile):
-        # if i is in set_of_voters, then:
-        # (a) i has utility at most beta-1 in committee
-        utility_in_committee = len(committee & voter.approved)
-        model.addConstr(utility_in_committee * set_of_voters[i] <= beta - 1)
-        # (b) i has utility at least beta in set_of_candidates
-        approved_in_set_of_candidates = [
-            (c in voter.approved) * set_of_candidates[i] for i, c in enumerate(profile.candidates)
-        ]
-        model.addConstr(gb.quicksum(approved_in_set_of_candidates) >= beta * set_of_voters[i])
-
-    _set_gurobi_model_parameters(model)
-    model.optimize()
-
-    if model.Status == gb.GRB.OPTIMAL:
-        T = [c for c in profile.candidates if set_of_candidates[c].Xn > 0.9]
-        detailed_information = {
-            "ell": len(T),
-            "beta": beta.Xn,
-            "joint_candidates": T,
-            "cohesive_group": [i for i in range(len(profile)) if set_of_voters[i].Xn > 0.9],
-        }
-        return False, detailed_information
-    elif model.Status == gb.GRB.INFEASIBLE:
-        detailed_information = {}
-        return True, detailed_information
-    else:
-        raise RuntimeError(f"Gurobi returned an unexpected status code: {model.Status}")
-    
-def _check_FJR_pulp(profile, committee):
-    """Test, by an ILP and the pulp solver, whether a committee satisfies FJR.
-    Parameters
-    ----------
-    profile : abcvoting.preferences.Profile
-        approval sets of voters
-    committee : set
-        set of candidates
-    Returns
-    -------
-    bool
-    References
-    ----------
-    Multi-Winner Voting with Approval Preferences.
-    Martin Lackner and Piotr Skowron.
-    <http://dx.doi.org/10.1007/978-3-031-09016-5>
-    """
-
-    committeesize = len(committee)
-
-    model = pulp.LpProblem("FJR_check", pulp.LpMinimize)
-
-    set_of_voters = pulp.LpVariable.dicts("voters", range(len(profile)), cat=pulp.LpBinary)
-    set_of_candidates = pulp.LpVariable.dicts("candidates", range(profile.num_cand), cat=pulp.LpBinary)
-    beta = pulp.LpVariable("beta", lowBound=1, upBound=committeesize, cat=pulp.LpInteger)
-    model += beta <= pulp.lpSum(set_of_candidates.values())
-
-    # coalition large enough to deserve |set_of_candidates| seats
-    model += pulp.lpSum(set_of_candidates.values()) * len(profile) <= pulp.lpSum(set_of_voters.values()) * committeesize
-    model += pulp.lpSum(set_of_voters.values()) >= 1
-    for i, voter in enumerate(profile):
-        # if i is in set_of_voters, then:
-        # (a) i has utility at most beta-1 in committee
-        utility_in_committee = len(committee & voter.approved)
-        model += utility_in_committee * set_of_voters[i] <= beta - 1
-        # (b) i has utility at least beta in set_of_candidates
-        approved_in_set_of_candidates = [
-            (c in voter.approved) * set_of_candidates[i] for i, c in enumerate(profile.candidates)
-        ]
-        model += pulp.lpSum(approved_in_set_of_candidates) >= beta - committeesize * (1 - set_of_voters[i])
-
-    # solve the problem
-    solution = mySolve(model)
-    status = solution["Status"]
-
-    # return value based on status code
-    # status code 1 means model was solved to optimality, thus a dominating committee was found
-    if status == "Optimal":
-        value = {}
-        for v in solution["Columns"]:
-            value[v] = solution["Columns"][v]["Primal"]
-        T = [c for c in profile.candidates if value[set_of_candidates[c].name] > 0.9]
-        detailed_information = {
-            "ell": len(T),
-            "beta": value[beta.name],
-            "joint_candidates": T,
-            "cohesive_group": [i for i in range(len(profile)) if value[set_of_voters[i].name] > 0.9],
-        }
-        return False, detailed_information
-
-    # status code -1 means that model is infeasible, thus no dominating committee was found
-    if status == "Infeasible":
-        detailed_information = {}
-        return True, detailed_information
-
-    raise RuntimeError(f"Pulp returned an unexpected status code: {status}")
 
 
 def check_FJR(profile, committee, quota=None, algorithm="fastest"):
@@ -1642,12 +1402,14 @@ def check_FJR(profile, committee, quota=None, algorithm="fastest"):
     committee = CandidateSet(committee, num_cand=profile.num_cand)
 
     if algorithm == "fastest":
-        algorithm = "gurobi"
+        algorithm = "pulp"
 
     if algorithm == "brute-force":
         result, detailed_information = _check_FJR_brute_force(profile, committee, quota)
     elif algorithm == "gurobi":
         result, detailed_information = _check_FJR_gurobi(profile, committee, quota)
+    elif algorithm == "pulp":
+        result, detailed_information = _check_FJR_pulp(profile, committee, quota)
     else:
         raise NotImplementedError("Algorithm " + str(algorithm) + " not specified for check_FJR")
 
@@ -1809,6 +1571,73 @@ def _check_FJR_gurobi(profile, committee, quota):
         return True, detailed_information
     else:
         raise RuntimeError(f"Gurobi returned an unexpected status code: {model.Status}")
+
+def _check_FJR_pulp(profile, committee, quota):
+    """Test, by an ILP and the pulp solver, whether a committee satisfies FJR.
+    Parameters
+    ----------
+    profile : abcvoting.preferences.Profile
+        approval sets of voters
+    committee : set
+        set of candidates
+    Returns
+    -------
+    bool
+    References
+    ----------
+    Multi-Winner Voting with Approval Preferences.
+    Martin Lackner and Piotr Skowron.
+    <http://dx.doi.org/10.1007/978-3-031-09016-5>
+    """
+
+    committeesize = len(committee)
+
+    model = pulp.LpProblem("FJR_check", pulp.LpMinimize)
+
+    set_of_voters = pulp.LpVariable.dicts("voters", range(len(profile)), cat=pulp.LpBinary)
+    set_of_candidates = pulp.LpVariable.dicts("candidates", range(profile.num_cand), cat=pulp.LpBinary)
+    beta = pulp.LpVariable("beta", lowBound=1, upBound=committeesize, cat=pulp.LpInteger)
+    model += beta <= pulp.lpSum(set_of_candidates.values())
+
+    # coalition large enough to deserve |set_of_candidates| seats
+    model += pulp.lpSum(set_of_candidates.values()) * float(quota) <= pulp.lpSum(set_of_voters.values())
+    model += pulp.lpSum(set_of_voters.values()) >= 1
+    for i, voter in enumerate(profile):
+        # if i is in set_of_voters, then:
+        # (a) i has utility at most beta-1 in committee
+        utility_in_committee = len(committee & voter.approved)
+        model += utility_in_committee * set_of_voters[i] <= beta - 1
+        # (b) i has utility at least beta in set_of_candidates
+        approved_in_set_of_candidates = [
+            (c in voter.approved) * set_of_candidates[i] for i, c in enumerate(profile.candidates)
+        ]
+        model += pulp.lpSum(approved_in_set_of_candidates) >= beta - committeesize * (1 - set_of_voters[i])
+
+    # solve the problem
+    solution = mySolve(model)
+    status = solution["Status"]
+
+    # return value based on status code
+    # status code 1 means model was solved to optimality, thus a dominating committee was found
+    if status == "Optimal":
+        value = {}
+        for v in solution["Columns"]:
+            value[v] = solution["Columns"][v]["Primal"]
+        T = [c for c in profile.candidates if value[set_of_candidates[c].name] > 0.9]
+        detailed_information = {
+            "ell": len(T),
+            "beta": value[beta.name],
+            "joint_candidates": T,
+            "cohesive_group": [i for i in range(len(profile)) if value[set_of_voters[i].name] > 0.9],
+        }
+        return False, detailed_information
+
+    # status code -1 means that model is infeasible, thus no dominating committee was found
+    if status == "Infeasible":
+        detailed_information = {}
+        return True, detailed_information
+
+    raise RuntimeError(f"Pulp returned an unexpected status code: {status}")
 
 
 def check_core(profile, committee, quota=None, algorithm="fastest"):
@@ -2087,7 +1916,7 @@ def _check_pareto_optimality_pulp(profile, committee):
 
     raise RuntimeError(f"Pulp returned an unexpected status code: {status}")
 
-def _check_EJR_pulp(profile, committee):
+def _check_EJR_pulp(profile, committee, quota):
     """
     Test, by an ILP and the pulp solver, whether a committee satisfies EJR.
 
@@ -2124,7 +1953,7 @@ def _check_EJR_pulp(profile, committee):
     in_group = [pulp.LpVariable(f"in_group_{i}", cat="Binary") for i in range(len(profile))]
 
     # constraints: size of ell-cohesive group should be appropriate wrt. ell
-    model += pulp.lpSum(in_group) >= ell * len(profile) / len(committee)
+    model += pulp.lpSum(in_group) >= ell * float(quota)
 
     # constraints based on binary indicator variables:
     # if voter is in ell-cohesive group, then the voter should have
@@ -2174,7 +2003,7 @@ def _check_EJR_pulp(profile, committee):
 
     raise RuntimeError(f"Pulp returned an unexpected status code: {status}")
 
-def _check_PJR_pulp(profile, committee):
+def _check_PJR_pulp(profile, committee, quota):
     """
     Test with a Pulp ILP whether a committee satisfies PJR.
 
@@ -2223,7 +2052,7 @@ def _check_PJR_pulp(profile, committee):
         in_group[i] = pulp.LpVariable(f"in_group_{i}", cat='Binary')
 
     # constraint: size of ell-cohesive group should be appropriate wrt ell
-    model += pulp.lpSum(in_group.values()) >= ell * len(profile) / len(committee)
+    model += pulp.lpSum(in_group.values()) >= ell * float(quota)
 
     # binary variables: indicate whether a candidate is in the intersection
     # of approved candidates over voters inside the group
@@ -2474,7 +2303,7 @@ def _check_priceability_pulp(profile, committee, stable=False):
     else:
         raise RuntimeError(f"Pulp returned an unexpected status code: {status}")
     
-def _check_core_pulp(profile, committee, committeesize):
+def _check_core_pulp(profile, committee, quota):
     """Test, by an ILP and the Gurobi solver, whether a committee is in the core.
 
     Parameters
@@ -2502,7 +2331,7 @@ def _check_core_pulp(profile, committee, committeesize):
     set_of_voters = [pulp.LpVariable(f"voter_{i}", cat="Binary") for i in range(len(profile))]
     set_of_candidates = [pulp.LpVariable(f"candidate_{i}", cat="Binary") for i in range(profile.num_cand)]
 
-    model += pulp.lpSum(set_of_candidates) * len(profile) <= pulp.lpSum(set_of_voters) * committeesize
+    model += pulp.lpSum(set_of_candidates) * float(quota) <= pulp.lpSum(set_of_voters)
     model += pulp.lpSum(set_of_voters) >= 1
     for i, voter in enumerate(profile):
         approved = [
