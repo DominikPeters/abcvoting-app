@@ -43,7 +43,7 @@ for i, voter in enumerate(profile):
     for candidate in voter.approved:
         u[candidate][i] = 1
 return_object['u'] = u
-if profile.totalweight() > len(profile):
+if profile.total_weight() > len(profile):
     return_object['with_weights'] = True
 else:
     return_object['with_weights'] = False
@@ -84,7 +84,7 @@ for i, voter in enumerate(profile):
     for candidate in voter.approved:
         u[candidate][i] = 1
 return_object['u'] = u
-if profile.totalweight() > len(profile):
+if profile.total_weight() > len(profile):
     return_object['with_weights'] = True
 else:
     return_object['with_weights'] = False
