@@ -1,0 +1,277 @@
+***************
+Proposition A.2
+***************
+
+------------
+1st profile:
+------------
+
+profile with 10 voters and 3 candidates:
+ 2 x {a},
+ 3 x {a, c},
+ 3 x {b, c},
+ 2 x {b}
+
+winning committees for k=1 and k=2:
+----------------------------------
+Proportional Approval Voting (PAV)
+----------------------------------
+
+Computing only one winning committee (resolute=True)
+
+
+Optimal PAV-score: 6
+
+1 winning committee:
+ {c}
+
+----------------------------------
+Proportional Approval Voting (PAV)
+----------------------------------
+
+Computing only one winning committee (resolute=True)
+
+
+Optimal PAV-score: 10
+
+1 winning committee:
+ {a, b}
+
+ PAV: {c} vs {a, b}
+--------------------------------
+Approval Chamberlin-Courant (CC)
+--------------------------------
+
+Computing only one winning committee (resolute=True)
+
+
+Optimal CC-score: 6
+
+1 winning committee:
+ {c}
+
+--------------------------------
+Approval Chamberlin-Courant (CC)
+--------------------------------
+
+Computing only one winning committee (resolute=True)
+
+
+Optimal CC-score: 10
+
+1 winning committee:
+ {a, b}
+
+ CC: {c} vs {a, b}
+-------------------------------
+Monroe's Approval Rule (Monroe)
+-------------------------------
+
+Computing only one winning committee (resolute=True)
+
+
+Optimal Monroe score: 6
+
+1 winning committee:
+ {c}
+
+-------------------------------
+Monroe's Approval Rule (Monroe)
+-------------------------------
+
+Computing only one winning committee (resolute=True)
+
+
+Optimal Monroe score: 10
+
+1 winning committee:
+ {a, b}
+
+ Monroe: {c} vs {a, b}
+------------------------------------------
+Phragmén's Minimax Rule (minimax-Phragmén)
+------------------------------------------
+
+Computing only one winning committee (resolute=True)
+
+
+1 winning committee:
+ {c}
+
+------------------------------------------
+Phragmén's Minimax Rule (minimax-Phragmén)
+------------------------------------------
+
+Computing only one winning committee (resolute=True)
+
+
+1 winning committee:
+ {a, b}
+
+ minimax-Phragmén: {c} vs {a, b}
+-----------------------------
+Minimax Approval Voting (MAV)
+-----------------------------
+
+Computing only one winning committee (resolute=True)
+
+
+1 winning committee:
+ {c}
+
+Minimum maximal distance: 2
+Corresponding distances to voters:
+[2, 2, 1, 1, 1, 1, 1, 1, 2, 2]
+
+-----------------------------
+Minimax Approval Voting (MAV)
+-----------------------------
+
+Computing only one winning committee (resolute=True)
+
+
+1 winning committee:
+ {a, b}
+
+Minimum maximal distance: 2
+Corresponding distances to voters:
+[1, 1, 2, 2, 2, 2, 2, 2, 1, 1]
+
+ minimaxav: {c} vs {a, b}
+
+------------
+2nd profile:
+------------
+
+profile with 18 voters and 4 candidates:
+ 8 x {a},
+ 4 x {a, c},
+ 2 x {a, b, c},
+ 1 x {a, d},
+ 3 x {b, d}
+
+winning committees for k=2 and k=3:
+-------------
+Greedy Monroe
+-------------
+
+
+The Monroe assignment computed by Greedy Monroe
+has a Monroe score of 14.
+Assignment (unsatisfatied voters marked with *):
+
+ candidate a assigned to: 0, 1, 2, 3, 4, 5, 6, 7, 8
+ candidate b assigned to: 9*, 10, 11, 12*, 13*, 14*, 15, 16, 17
+
+1 winning committee:
+ {a, b}
+
+-------------
+Greedy Monroe
+-------------
+
+
+The Monroe assignment computed by Greedy Monroe
+has a Monroe score of 16.
+Assignment (unsatisfatied voters marked with *):
+
+ candidate a assigned to: 0, 1, 2, 3, 4, 5
+ candidate c assigned to: 6, 7, 8, 9, 10, 11
+ candidate d assigned to: 12*, 13*, 14, 15, 16, 17
+
+1 winning committee:
+ {a, c, d}
+
+ Greedy Monroe: {a, b} vs {a, c, d}
+
+------------
+3rd profile:
+------------
+
+profile with 4 voters and 6 candidates:
+ 1 x {a, d, e},
+ 1 x {a, c},
+ 1 x {b, e},
+ 1 x {c, d, f}
+
+winning committees for k=3 and k=4:
+-------------------------------------------------------
+Method of Equal Shares (aka Rule X) with Phragmén phase
+-------------------------------------------------------
+
+
+Phase 1:
+
+starting budget:
+  (3/4, 3/4, 3/4, 3/4)
+
+adding candidate number 1: a
+ with maxmimum cost per voter q = 1/2
+ remaining budget:
+  (1/4, 1/4, 3/4, 3/4)
+ tie broken in favor of a,
+ candidates {a, c, d, e} are tied
+ (all would impose a maximum cost of 1/2).
+
+adding candidate number 2: c
+ with maxmimum cost per voter q = 3/4
+ remaining budget:
+  (1/4, 0, 3/4, 0)
+ tie broken in favor of c,
+ candidates {c, d, e} are tied
+ (all would impose a maximum cost of 3/4).
+
+adding candidate number 3: e
+ with maxmimum cost per voter q = 3/4
+ remaining budget:
+  (0, 0, 0, 0)
+
+1 winning committee:
+ {a, c, e}
+
+-------------------------------------------------------
+Method of Equal Shares (aka Rule X) with Phragmén phase
+-------------------------------------------------------
+
+
+Phase 1:
+
+starting budget:
+  (1, 1, 1, 1)
+
+adding candidate number 1: a
+ with maxmimum cost per voter q = 1/2
+ remaining budget:
+  (1/2, 1/2, 1, 1)
+ tie broken in favor of a,
+ candidates {a, c, d, e} are tied
+ (all would impose a maximum cost of 1/2).
+
+adding candidate number 2: c
+ with maxmimum cost per voter q = 1/2
+ remaining budget:
+  (1/2, 0, 1, 1/2)
+ tie broken in favor of c,
+ candidates {c, d, e} are tied
+ (all would impose a maximum cost of 1/2).
+
+adding candidate number 3: d
+ with maxmimum cost per voter q = 1/2
+ remaining budget:
+  (0, 0, 1, 0)
+ tie broken in favor of d,
+ candidates {d, e} are tied
+ (all would impose a maximum cost of 1/2).
+
+adding candidate number 4: b
+ with maxmimum cost per voter q = 1
+ remaining budget:
+  (0, 0, 0, 0)
+ tie broken in favor of b,
+ candidates {b, e} are tied
+ (all would impose a maximum cost of 1).
+
+1 winning committee:
+ {a, b, c, d}
+
+ Equal Shares: {a, c, e} vs {a, b, c, d}

@@ -1,0 +1,90 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see:
+# https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Unittests
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+    branches: [ "master" ]
+
+jobs:
+  unittests:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, "3.10", "3.11"]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # fetch all tags to be able to generate a version number for test packages
+        fetch-depth: 0
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[dev]
+        pip install gmpy2
+        pip install ortools
+
+        # these are optional requirements, but we want GLPK_MI to be installed to run more unitests
+        # TODO: cvxpy pip install is not working currently
+        # pip install cvxpy
+        # pip install cvxopt
+
+    # cvxpy is currently not used
+    #- name: Test if solver GLPK_MI is installed
+      # this is just a paranoia check, because unit tests won't fail, they would be silently skipped
+      # run: python -c "import cvxpy as cp; assert cp.GLPK_MI in cp.installed_solvers(), 'GLPKI_MI not installed'"
+
+    - name: Lint with flake8
+      run: |
+        pip install flake8
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Check for correct black formatting
+      run: black --check .
+
+    - name: Test with pytest
+      run: |
+        coverage run --source=. -m pytest -v --tb=long -m "not mipgurobi and (not gurobipy or not slow) and (not mipcbc or not slow) and (not ortools or not slow) and not veryslow" -ra tests/
+
+    - name: Generate coverage report
+      run: coverage xml
+
+    - name: Upload coverage metrics to codecov
+      uses: codecov/codecov-action@v3
+
+    # tests the package, the release is done in build.yml
+    - name: Build a binary wheel and a source tarball
+      run: python setup.py bdist_wheel
+      env:
+        # does not increment on re-run... :(
+        # this means this will fail in the last step, when uploading the same package again to PyPI
+        # because PyPI requires unique file names for uploaded packages
+        BUILD_NUMBER: ${{ github.run_number }}
+
+    # tests uploading the package to the test repo, but only if API_KEY is defined
+    - name: Publish distribution package to Test PyPI
+      env:
+        TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      if: (env.TEST_PYPI_API_TOKEN != null) && (matrix.python-version == '3.8') && (github.ref == 'refs/heads/master')
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        repository_url: https://test.pypi.org/legacy/

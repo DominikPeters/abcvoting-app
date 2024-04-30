@@ -1,0 +1,70 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+# https://docs.pytest.org/en/stable/customize.html
+addopts = '''
+-ra
+--tb=line
+-W error
+--doctest-modules
+--strict-markers
+'''
+# -ra: show extra test summary [...] (a)ll except passed [...]
+# --tb=style: traceback print mode (auto/long/short/line/native/no)
+# -W: set which warnings to report, "error" turns matching warnings into exceptions
+
+testpaths = [
+    "tests",
+]
+
+norecursedirs = [
+    ".git",
+    ".github",
+    ".pytest_cache",
+    "__pycache__",
+]
+
+markers = [
+    "gurobipy: a test that requires Gurobi (gurpbipy)",
+    "scip: a test that requires SCIP",
+    "glpk_mi: a test that requires glpk_mi",
+    "cbc: a test that requires CBC",
+    "cvxpy: a test that requires cvxpy",
+    "ortools: a test that requires ortools",
+    "mip: a test that requires mip",
+    "mipgurobi: a test that requires mip and Gurobi",
+    "mipcbc: a test that requires mip and CBC",
+    "gmpy2: a test that requires gmpy2",
+    "slow: a test with a rather long runtime",
+    "veryslow: a test with a VERY long runtime"
+]
+
+
+[tool.coverage.run]
+# https://coverage.readthedocs.io/en/latest/config.html
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 0
+
+[tool.black]
+# https://black.readthedocs.io/en/stable/pyproject_toml.html
+line-length = 99
+target-version = ['py38']
+exclude = '''
+(
+  /(
+      \.git
+    | \.github
+    | \.pytest_cache
+    | env
+    | venv
+  )/
+)
+'''
