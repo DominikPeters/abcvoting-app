@@ -27,7 +27,7 @@ export async function loadPython() {
     await window.pyodide.runPython(`
         import js
         import json
-        from abcvoting.preferences import Profile
+        from abcvoting.preferences import Profile, Voter
         from abcvoting import abcrules, properties, fileio
         from abcvoting.generate import random_profile, PointProbabilityDistribution
         from abcvoting.output import output, INFO, DETAILS

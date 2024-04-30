@@ -63,7 +63,7 @@ export function populateRandomizerModal(attachListeners=false) {
 }
 
 export function randomize() {
-    let result = window.pyodide.runPython(`
+    let result = JSON.parse(window.pyodide.runPython(`
         prob_distribution = ${JSON.stringify(settings.randomizer)}
         # go through fields in prob_distribution and replace strings with floats or ints if possible
         for field in prob_distribution:
@@ -82,9 +82,11 @@ export function randomize() {
         for i, voter in enumerate(profile):
             for candidate in voter.approved:
                 u[candidate][i] = 1
-        json.dumps(u)
-    `);
-    let u_ = JSON.parse(result);
+        w = {i : voter.weight for i, voter in enumerate(profile)}
+        json.dumps({'u': u, 'w': w})
+    `));
+    let u_ = result.u;
+    let w_ = result.w;
     setInstance(state.N, state.C, u_, state.committeeSize);
     buildTable();
 }

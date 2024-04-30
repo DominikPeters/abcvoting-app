@@ -36,10 +36,11 @@ export function deleteVoter(voter) {
     buildTable();
 }
 
-export function setInstance(N_, C_, u_, committeeSize_) {
+export function setInstance(N_, C_, u_, committeeSize_, w_) {
     state.N = N_;
     state.C = C_;
     state.u = u_;
+    state.w = w_;
     document.getElementById('committee-size-input').max = state.C.length - 1;
     document.getElementById('committee-size-range').max = state.C.length - 1;
     setCommitteeSize(committeeSize_);
@@ -62,13 +63,18 @@ export function loadMatrix(matrix) {
         let N_ = Array.from(Array(numVoters).keys());
         let C_ = Array.from(Array(numCands).keys());
         let u_ = {};
+        let w_ = {};
+        for (let k in N_){
+            w_[k] = 1
+        }
         for (let j of C_) {
             u_[j] = {};
             for (let i of N_) {
                 u_[j][i] = parseInt(lines[i][j]);
             }
         }
-        setInstance(N_, C_, u_, state.committeeSize);
+        
+        setInstance(N_, C_, u_, state.committeeSize, w_);
         return true;
     } else {
         return false;
