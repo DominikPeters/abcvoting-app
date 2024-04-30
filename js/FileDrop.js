@@ -84,10 +84,10 @@ for i, voter in enumerate(profile):
     for candidate in voter.approved:
         u[candidate][i] = 1
 return_object['u'] = u
-if profile.total_weight() > len(profile):
-    return_object['with_weights'] = True
-else:
+if profile.has_unit_weights():
     return_object['with_weights'] = False
+else:
+    return_object['with_weights'] = True
 w = {i: voter.weight for i, voter in enumerate(profile)}
 return_object['w'] = w
 json.dumps(return_object)
