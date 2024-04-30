@@ -4,8 +4,7 @@ import { loadMatrix } from './InstanceManagement.js';
 import { buildTable } from './TableBuilder.js';
 
 function writeURL() {
-    let profileMatrix = settings.useWeights? "1&" : "0&" 
-    profileMatrix += profileToMatrix(state,settings.useWeights);
+    let profileMatrix =  profileToMatrix(state,settings.useWeights);
     let stateString = `${state.committeeSize}&` + profileMatrix.replaceAll("\n", "&").slice(0, -1);
     if (stateString != window.location.search.substring(1)) {
         window.history.pushState({}, "", window.location.origin + window.location.pathname + "?" + stateString);
@@ -13,8 +12,7 @@ function writeURL() {
 }
 
 export function copyURL() {
-    let profileMatrix = settings.useWeights? "1&" : "0&"
-    profileMatrix += profileToMatrix(state,settings.useWeights);
+    let profileMatrix = profileToMatrix(state,settings.useWeights);
     let stateString = `${state.committeeSize}&` + profileMatrix.replaceAll("\n", "&").slice(0, -1);
     let URL = window.location.origin + window.location.pathname + "?" + stateString;
     let button = document.getElementById("copy-url-button");
@@ -38,9 +36,9 @@ export function readURL() {
         try {
             let stateString = window.location.search.substring(1);
             let info = stateString.split("&");
-            let matrix = info.slice(2).join("\n");
+            let matrix = info.slice(1).join("\n");
             let committeeSize_ = parseInt(info[0]);
-            if (parseInt(info[1])){
+            if (matrix.includes('*')){
                 settings.useWeights = true;
                 let useWeights = document.getElementById("weights");
                 useWeights.checked = true;
