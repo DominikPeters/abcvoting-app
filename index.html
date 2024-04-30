@@ -57,7 +57,7 @@
                 </div>
                 <input type="range" id="committee-size-range" min="1" max="20">
             </div>
-            <div style="display: flex; gap: 0.5em;">
+            <div style="display: flex;">
                 <button style="flex: 1" id="random-button">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="14" fill="currentColor"
                         class="bi bi-shuffle" viewBox="0 0 16 16"
@@ -69,7 +69,7 @@
                     </svg>
                     <strong>Generate random
                         matrix</strong></button>
-                <button style="flex: 0; line-height: 0;" data-tippy-content="Configure random generator"
+                <button style="flex: 0; line-height: 0;" id="random-options-button" data-tippy-content="Configure random generator"
                     data-hystmodal="#randomize-modal">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="bi bi-gear-fill" viewBox="0 0 16 16">
@@ -214,9 +214,8 @@
             <p id="credits">
                 Built using the <a href="https://github.com/martinlackner/abcvoting">abcvoting</a> package by
                 Lackner et al.<br>
-                <!-- <a href="https://github.com/DominikPeters/pqtree.js">Github</a> &middot;  -->
-                Web version: <a href="https://dominik-peters.de">Dominik Peters</a>
-                &middot; updated November 2023
+                <a href="https://github.com/DominikPeters/abcvoting-app">Web version</a> by <a href="https://dominik-peters.de">Dominik Peters</a>
+                &middot; updated April 2024
             </p>
         </aside>
 
@@ -229,7 +228,8 @@
                         <i>How to Sample Approval Elections?</i>
                         Stanisław Szufa, Piotr Faliszewski, Łukasz Janeczko, Martin Lackner, Arkadii Slinko, Krzysztof
                         Sornat, Nimrod Talmon.
-                        <a href="https://arxiv.org/abs/2207.01140">arXiv:2207.01140</a>
+                        <a href="https://arxiv.org/abs/2207.01140">arXiv:2207.01140</a>.
+                        Code is based on the <a href="https://github.com/COMSOC-Community/prefsampling">prefsampling</a> package.
                     </p>
                     <ul id="probability-distributions-list">
                         <li>
@@ -273,7 +273,7 @@
                                     <option value="2d_disc">2D Disc (uniform, radius 1)</option>
                                     <option value="2d_gaussian">2D Gaussian</option>
                                     <option value="2d_gaussian_disc">2D Gaussian restricted to disc</option>
-                                </select> candidate_prob_distribution : str - probability distribution of the voter
+                                </select> candidate_prob_distribution : str - probability distribution of the candidate
                                 points
                             </div>
                             <span id="Euclidean VCR-warning"
@@ -306,7 +306,7 @@
                                     <option value="2d_disc">2D Disc (uniform, radius 1)</option>
                                     <option value="2d_gaussian">2D Gaussian</option>
                                     <option value="2d_gaussian_disc">2D Gaussian restricted to disc</option>
-                                </select> candidate_prob_distribution : str - probability distribution of the voter
+                                </select> candidate_prob_distribution : str - probability distribution of the candidate
                                 points
                             </div>
                             <span id="Euclidean fixed-size-warning"
@@ -410,8 +410,8 @@
                                 generated vote approves that candidate with probability p).
                             </div>
                             <div class="random-parameter">
-                                <input type="text" id="Disjoint Resampling-p" value="0.5" size="4"> p : float in [0, 1]
-                                Probability of approving a candidate in case that the model resamples.
+                                <input type="text" id="Disjoint Resampling-p" value="0.3" size="4"> p : float in [0, 1]
+                                Probability of approving a candidate in case that the model resamples. Note: num_groups * p should be at most 1.
                             </div>
                         </li>
                         <li>
@@ -466,9 +466,9 @@
                     <strong>0/1 matrix:</strong>
                     <pre id="matrix-export"></pre>
                     <button id="export-matrix-button">Download</button><br>
-                    <strong>Preflib v1 .toi file:</strong>
-                    <pre id="toi-export"></pre>
-                    <button id="export-toi-button">Download</button><br>
+                    <strong>Preflib .cat file:</strong>
+                    <pre id="cat-export"></pre>
+                    <button id="export-cat-button">Download</button><br>
                     <strong>abcvoting yaml:</strong>
                     <pre id="yaml-export"></pre>
                     <button id="export-yaml-button">Download</button>
@@ -568,7 +568,7 @@
         </div>
 
 
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
         <script type="text/javascript" src="imports/highs.js"></script>
         <script src="imports/hystmodal.min.js"></script>
         <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>

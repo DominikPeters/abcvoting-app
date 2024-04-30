@@ -101,7 +101,15 @@ aside button:disabled {
     cursor: not-allowed;
 }
 
+aside button#random-options-button {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
 aside button#random-button {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-right: -2px;
     background-color: hsl(282, 62%, 37%);
 }
 

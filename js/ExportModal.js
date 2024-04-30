@@ -15,11 +15,12 @@ function downloadExport(exportPre, filename) {
 
 export function populateExportModal() {
     document.getElementById("matrix-export").innerHTML = profileToMatrix(state);
-    // preflib toi export
-    let resultPreflibToi = window.pyodide.runPython(`
-        fileio.write_profile_to_preflib_toi_file(profile=profile)
+    // preflib cat export
+    let resultPreflibCat = window.pyodide.runPython(`
+        fileio.write_profile_to_preflib_cat_file("abc-profile.cat", profile=profile)
+        open("abc-profile.cat", "r").read()
     `);
-    document.getElementById("toi-export").innerHTML = resultPreflibToi;
+    document.getElementById("cat-export").innerHTML = resultPreflibCat;
     // abcvoting yaml export
     let compute_instances = [];
     for (let rule in rules) {
@@ -41,6 +42,6 @@ export function populateExportModal() {
     document.getElementById("yaml-export").innerHTML = resultYaml;
     // button events
     document.getElementById("export-matrix-button").addEventListener("click", () => { downloadExport('matrix-export', 'abc-profile.txt') });
-    document.getElementById("export-toi-button").addEventListener("click", () => { downloadExport('toi-export', 'abc-profile.toi') });
+    document.getElementById("export-cat-button").addEventListener("click", () => { downloadExport('cat-export', 'abc-profile.cat') });
     document.getElementById("export-yaml-button").addEventListener("click", () => { downloadExport('yaml-export', 'profile.abc.yaml') });
 }
