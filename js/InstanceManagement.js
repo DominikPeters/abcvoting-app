@@ -52,7 +52,7 @@ export function setCommitteeSize(committeeSize_) {
     document.getElementById('committee-size-range').value = state.committeeSize;
 }
 
-export function loadMatrix(matrix,standard=false) {
+export function loadMatrix(matrix, standard=false) {
     var lines = matrix.split('\n');
     // remove empty lines
     lines = lines.filter(line => line.length > 0);
