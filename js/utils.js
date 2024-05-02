@@ -21,7 +21,7 @@ export function profileToMatrix(state, useWeights=false) {
     // turn instance into 0/1 matrix, one row per voter
     for (let i of state.N) {
         if (useWeights){
-            text+= state.w[i] + "*";
+            text += state.w[i] + "*";
         }
         for (let j of state.C) {
             text += state.u[j][i];

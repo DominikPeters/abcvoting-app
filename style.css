@@ -263,6 +263,10 @@ td.empty-cell {
     position: relative;
 }
 
+td.hidden-column { 
+    display: none; 
+}
+
 #profile-table .rule-table-rows {
     position: sticky;
     inset-block-end: 0;

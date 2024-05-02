@@ -27,30 +27,30 @@ export function addSettingChangeHandlers() {
     });
 }
 
-export function changeUseWeightSetting(){
+export function changeUseWeightSetting() {
     let useWeights = document.getElementById("weights");
-    useWeights.addEventListener("click", function () {
+    useWeights.addEventListener("change", function () {
         var weightCells = document.getElementsByClassName("weight-cell");
-        if (!useWeights.checked){
+        if (!useWeights.checked) {
             for (let i = 1; i < weightCells.length; i++) {
-                if (weightCells[i].children[0] && weightCells[i].children[0].value != 1){
+                if (weightCells[i].children[0] && weightCells[i].children[0].value != 1) {
                     alert("Weight values must be set to 1 in order to remove them")
                     useWeights.checked = true;
                     return;
                 }
             }
-            }
+        }
         for (let i = 0; i < weightCells.length; i++) {
             var cell = weightCells[i].classList.toggle("hidden-column");
         }
-        settings.useWeights = useWeights.checked
+        settings.useWeights = useWeights.checked;
         if (window.pyodide) {
-            if (useWeights.checked){
-                rulesDontSupportWeight()
-            }else{
-                calculateRules()
+            if (useWeights.checked) {
+                rulesDontSupportWeight();
+            } else {
+                calculateRules();
             }
-            
+
         }
-    })
+    });
 }

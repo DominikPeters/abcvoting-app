@@ -84,7 +84,7 @@ export async function calculateRules() {
     }
     // from u, make a profile string of the form
     // {0, 1, 2}, {3}, {0, 1, 2, 3}, {0, 1, 2, 4}, {0, 1}, {4}
-    if (!settings.useWeights){
+    if (!settings.useWeights) {
         let profileString = "[";
         for (let i of state.N) {
             let voterString = "{";
@@ -115,7 +115,7 @@ export async function calculateRules() {
             }
             voterString = voterString.slice(0, -1); // remove trailing comma
             voterString += "], ";
-            voterString += state.w[i] + ")"
+            voterString += state.w[i] + ")";
             if (voterString != '(], 1)') {
                 profileString += voterString + ",";
             }
@@ -127,16 +127,16 @@ export async function calculateRules() {
                 profile.add_voter(Voter(values, weight=weight))
         `);
     }
-    
-    
-    
+
+
+
     let table = document.getElementById("profile-table");
     let tBody = table.getElementsByTagName("tbody")[0];
     for (let rule in rules) {
         if (!rules[rule].active) {
             continue;
         }
-        if (handleRuleDoesntSupportWeight(rule)){
+        if (handleRuleDoesntSupportWeight(rule)) {
             continue;
         }
         if (settings.resolute) {
@@ -213,7 +213,7 @@ export async function calculateRules() {
     return true;
 }
 
-export async function rulesDontSupportWeight(){
+export async function rulesDontSupportWeight() {
     if (!settings.liveMode) {
         return;
     }
@@ -221,20 +221,20 @@ export async function rulesDontSupportWeight(){
         if (!rules[rule].active) {
             continue;
         }
-        handleRuleDoesntSupportWeight(rule)
+        handleRuleDoesntSupportWeight(rule);
     }
 }
 
-function handleRuleDoesntSupportWeight(rule){
-    if (settings.useWeights && !rules[rule].weight){
+function handleRuleDoesntSupportWeight(rule) {
+    if (settings.useWeights && !rules[rule].weight) {
         for (let j of state.C) {
             let cell = document.getElementById("rule-" + rule + "-candidate-" + j + "-cell");
             cell.innerHTML = "";
             cell.className = "";
         }
         let row = document.getElementById("rule-" + rule + "-row");
-        row.classList.remove("rule-row")
-        return true
+        row.classList.remove("rule-row");
+        return true;
     }
-    return false
+    return false;
 }

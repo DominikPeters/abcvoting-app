@@ -52,19 +52,19 @@ export function setCommitteeSize(committeeSize_) {
     document.getElementById('committee-size-range').value = state.committeeSize;
 }
 
-export function loadMatrix(matrix, standard=false) {
+export function loadMatrix(matrix, standard = false) {
     var lines = matrix.split('\n');
     // remove empty lines
     lines = lines.filter(line => line.length > 0);
     // check that all lines have the same length
-    let no_weights = standard || !settings.useWeights
-    if (((no_weights &&
+    let noWeights = standard || !settings.useWeights;
+    if (((noWeights &&
         lines.every(line => line.length === lines[0].length)) ||
         settings.useWeights &&
         lines.every(line => line.split('*')[1].length === lines[0].split('*')[1].length))) {
 
         let numCands = lines[0].length;
-        if (settings.useWeights && !standard){
+        if (settings.useWeights && !standard) {
             numCands = lines[0].length - lines[0].split('*')[0].length;
         }
         let numVoters = lines.length;
@@ -72,21 +72,21 @@ export function loadMatrix(matrix, standard=false) {
         let C_ = Array.from(Array(numCands).keys());
         let u_ = {};
         let w_ = {};
-        let weightsString = []
-        if (!no_weights){
-            for (let k in N_){
-                weightsString[k] = lines[k].split('*')[0]
-                w_[k] = parseFloat(weightsString[k])
+        let weightsString = [];
+        if (!noWeights) {
+            for (let k in N_) {
+                weightsString[k] = lines[k].split('*')[0];
+                w_[k] = parseFloat(weightsString[k]);
             }
             for (let j of C_) {
                 u_[j] = {};
                 for (let i of N_) {
-                    u_[j][i] = parseInt(lines[i][j+weightsString[i].length]);
+                    u_[j][i] = parseInt(lines[i][j + weightsString[i].length]);
                 }
             }
         } else {
-            for (let k in N_){
-                w_[k] = 1
+            for (let k in N_) {
+                w_[k] = 1;
             }
             for (let j of C_) {
                 u_[j] = {};
