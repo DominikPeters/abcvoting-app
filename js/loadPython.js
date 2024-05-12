@@ -9,6 +9,7 @@ export async function loadPython() {
     loading.innerHTML = "Loading... (30%)";
     await window.pyodide.loadPackage("micropip");
     const micropip = window.pyodide.pyimport("micropip");
+    await micropip.add_mock_package("mip", "2.0.0");
     loading.innerHTML = "Loading... (40%)";
     // await micropip.install("/pulp-master/dist/PuLP-2.7.0-py3-none-any.whl?" + Math.random(), keep_going = true);
     await micropip.install("pip/PuLP-2.7.0-py3-none-any.whl?1", true);
