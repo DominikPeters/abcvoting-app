@@ -84,29 +84,59 @@ export async function calculateRules() {
     }
     // from u, make a profile string of the form
     // {0, 1, 2}, {3}, {0, 1, 2, 3}, {0, 1, 2, 4}, {0, 1}, {4}
-    let profileString = "[";
-    for (let i of state.N) {
-        let voterString = "{";
-        for (let j of state.C) {
-            if (state.u[j][i] == 1) {
-                voterString += j + ",";
+    if (!settings.useWeights){
+        let profileString = "[";
+        for (let i of state.N) {
+            let voterString = "{";
+            for (let j of state.C) {
+                if (state.u[j][i] == 1) {
+                    voterString += j + ",";
+                }
+            }
+            voterString = voterString.slice(0, -1); // remove trailing comma
+            voterString += "}";
+            if (voterString != '}') {
+                profileString += voterString + ",";
             }
         }
-        voterString = voterString.slice(0, -1); // remove trailing comma
-        voterString += "}";
-        if (voterString != '}') {
-            profileString += voterString + ",";
+        profileString = profileString.slice(0, -1) + "]"; // remove trailing comma
+        window.pyodide.runPython(`
+            profile = Profile(num_cand=${state.C.length})
+            profile.add_voters(${profileString})
+        `);
+    } else {
+        let profileString = "[";
+        for (let i of state.N) {
+            let voterString = "([";
+            for (let j of state.C) {
+                if (state.u[j][i] == 1) {
+                    voterString += j + ",";
+                }
+            }
+            voterString = voterString.slice(0, -1); // remove trailing comma
+            voterString += "], ";
+            voterString += state.w[i] + ")"
+            if (voterString != '(], 1)') {
+                profileString += voterString + ",";
+            }
         }
+        profileString = profileString.slice(0, -1) + "]"; // remove trailing comma
+        window.pyodide.runPython(`
+            profile = Profile(num_cand=${state.C.length})
+            for values, weight in ${profileString}:
+                profile.add_voter(Voter(values, weight=weight))
+        `);
     }
-    profileString = profileString.slice(0, -1) + "]"; // remove trailing comma
-    window.pyodide.runPython(`
-        profile = Profile(num_cand=${state.C.length})
-        profile.add_voters(${profileString})
-    `);
+    
+    
+    
     let table = document.getElementById("profile-table");
     let tBody = table.getElementsByTagName("tbody")[0];
     for (let rule in rules) {
         if (!rules[rule].active) {
+            continue;
+        }
+        if (handleRuleDoesntSupportWeight(rule)){
             continue;
         }
         if (settings.resolute) {
@@ -181,4 +211,30 @@ export async function calculateRules() {
         }
     }
     return true;
+}
+
+export async function rulesDontSupportWeight(){
+    if (!settings.liveMode) {
+        return;
+    }
+    for (let rule in rules) {
+        if (!rules[rule].active) {
+            continue;
+        }
+        handleRuleDoesntSupportWeight(rule)
+    }
+}
+
+function handleRuleDoesntSupportWeight(rule){
+    if (settings.useWeights && !rules[rule].weight){
+        for (let j of state.C) {
+            let cell = document.getElementById("rule-" + rule + "-candidate-" + j + "-cell");
+            cell.innerHTML = "";
+            cell.className = "";
+        }
+        let row = document.getElementById("rule-" + rule + "-row");
+        row.classList.remove("rule-row")
+        return true
+    }
+    return false
 }

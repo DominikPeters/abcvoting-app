@@ -13,137 +13,164 @@ export const rules = {
     "av": {
         "fullName": "Approval Voting (AV)",
         "shortName": "AV",
-        "active": 1
+        "active": 1,
+        "weight": true
     },
     "sav": {
         "fullName": "Satisfaction Approval Voting (SAV)",
         "shortName": "SAV",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "pav": {
         "fullName": "Proportional Approval Voting (PAV)",
         "shortName": "PAV",
-        "active": 1
+        "active": 1,
+        "weight": true
     },
     "slav": {
         "fullName": "Sainte-Laguë Approval Voting (SLAV)",
         "shortName": "SLAV",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "cc": {
         "fullName": "Approval Chamberlin-Courant (CC)",
         "shortName": "CC",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "lexcc": {
         "fullName": "Lexicographic Chamberlin-Courant (lex-CC)",
         "shortName": "lex-CC",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "geom2": {
         "fullName": "2-Geometric Rule",
         "shortName": "2-Geometric",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "seqpav": {
         "fullName": "Sequential Proportional Approval Voting (seq-PAV)",
         "shortName": "seq-PAV",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "revseqpav": {
         "fullName": "Reverse Sequential Proportional Approval Voting (revseq-PAV)",
         "shortName": "revseq-PAV",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "seqslav": {
         "fullName": "Sequential Sainte-Laguë Approval Voting (seq-SLAV)",
         "shortName": "seq-SLAV",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "seqcc": {
         "fullName": "Sequential Approval Chamberlin-Courant (seq-CC)",
         "shortName": "seq-CC",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "seqphragmen": {
         "fullName": "Phragmén's Sequential Rule (seq-Phragmén)",
         "shortName": "seq-Phragmén",
-        "active": 1
+        "active": 1,
+        "weight": true
     },
     "minimaxphragmen": {
         "fullName": "Phragmén's Minimax Rule (minimax-Phragmén)",
         "shortName": "minimax-Phragmén",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "leximaxphragmen": {
         "fullName": "Phragmén's Leximax Rule (leximax-Phragmén)",
         "shortName": "leximax-Phragmén",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "maximin-support": {
         "fullName": "Maximin Support Method (MMS)",
         "shortName": "Maximin Support",
-        "active": 1
+        "active": 1,
+        "weight": true
     },
     "monroe": {
         "fullName": "Monroe's Approval Rule (Monroe)",
         "shortName": "Monroe",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "greedy-monroe": {
         "fullName": "Greedy Monroe",
         "shortName": "greedy-Monroe",
-        "active": 0
+        "active": 0.4,
+        "weight": false
     },
     "minimaxav": {
         "fullName": "Minimax Approval Voting (MAV)",
         "shortName": "MAV",
-        "active": 1
+        "active": 1,
+        "weight": true
     },
     "lexminimaxav": {
         "fullName": "Lexicographic Minimax Approval Voting (lex-MAV)",
         "shortName": "lex-MAV",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "equal-shares": {
         "fullName": "Method of Equal Shares (aka Rule X) with Phragmén phase",
         "shortName": "Equal Shares",
-        "active": 1
+        "active": 1,
+        "weight": false
     },
     "equal-shares-with-av-completion": {
         "fullName": "Method of Equal Shares (aka Rule X) with AV completion",
         "shortName": "Equal Shares + AV",
-        "active": 0
+        "active": 0,
+        "weight": false
     },
     "equal-shares-with-increment-completion": {
         "fullName": "Method of Equal Shares (aka Rule X) with increment completion",
         "shortName": "Equal Shares + incr.",
-        "active": 0
+        "active": 0,
+        "weight": false
     },
     "phragmen-enestroem": {
         "fullName": "Method of Phragmén-Eneström",
         "shortName": "Eneström",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "consensus-rule": {
         "fullName": "Consensus Rule",
         "shortName": "Consensus",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "trivial": {
         "fullName": "Trivial Rule",
         "shortName": "Trivial",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "rsd": {
         "fullName": "Random Serial Dictator",
         "shortName": "RSD",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
     "eph": {
         "fullName": "E Pluribus Hugo (EPH)",
         "shortName": "E Pluribus Hugo",
-        "active": 0
+        "active": 0,
+        "weight": true
     },
 }
 

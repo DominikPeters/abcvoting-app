@@ -156,6 +156,10 @@
                 <input type="checkbox" id="live-mode" checked>
                 <label for="live-mode">Live mode (recompute with every change)</label>
             </div>
+            <div class="checkbox-option">
+                <input type="checkbox" id="weights">
+                <label for="live-mode">Use weights</label>
+            </div>
             <!-- <div class="checkbox-option">
                 <input type="checkbox" id="resolute" checked>
                 <label for="resolute">Resolute (break ties)</label>
@@ -544,6 +548,13 @@
                                 guarantees of approval-based multiwinner rules",
                                 Example 2</span>
                         </li>
+                        <li><button data-num-cands="5" data-k="3" data-activate-rule="seqpav" data-weights="1"
+                            data-profile="[([0, 2, 4], 10), ([0, 1, 4], 9), ([0, 1], 1), ([1, 3], 8), ([2, 3], 8)]">Load</button>
+                        Seq-Phragmén/seq-PAV/Equal Shares fail Pareto optimality
+                        <span class="citation">Lackner and Skowron, 2020, "Utilitarian welfare and representation
+                            guarantees of approval-based multiwinner rules",
+                            Example 2 with weights</span>
+                    </li>
                     </ul>
                 </div>
             </div>

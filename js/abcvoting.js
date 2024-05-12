@@ -13,7 +13,7 @@ import { calculateRules } from './CalculateRules.js';
 import { startLog, getLog, storedLogs, logger } from './logger.js';
 import { addVoter, addCandidate, setCommitteeSize, loadMatrix } from './InstanceManagement.js';
 import { populateLibraryModal } from './LibraryModal.js';
-import { addSettingChangeHandlers } from './SettingsManagement.js';
+import { addSettingChangeHandlers, changeUseWeightSetting } from './SettingsManagement.js';
 
 window.logger = logger;
 
@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('paste', pasteMatrix);
 
     addSettingChangeHandlers();
+    changeUseWeightSetting();
 
     tippy('[data-tippy-content]', { theme: "light", });
     window.modals = new HystModal({

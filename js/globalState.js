@@ -2,6 +2,7 @@ export const state = {
     N: 0,
     C: 0,
     u: {},
+    w: {},
     committeeSize: 12,
     storedCommittee: {}
 }
@@ -9,6 +10,7 @@ export const state = {
 export const settings = {
     resolute: true,
     liveMode: true,
+    useWeights: false,
     useFractions: false,
     showPropertyinTable: false,
     randomizer: { id: 'IC', p: 0.5 },
