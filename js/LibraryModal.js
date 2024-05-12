@@ -28,15 +28,6 @@ export function populateLibraryModal() {
             let N_ = Array.from(Array(result.n).keys());
             let w_ = result.w;
             let C_ = Array.from(Array(numCands).keys());
-            if (this.dataset.weights) {
-                settings.useWeights = true;
-                let useWeights = document.getElementById("weights");
-                useWeights.checked = true;
-            } else {
-                settings.useWeights = false;
-                let useWeights = document.getElementById("weights");
-                useWeights.checked = false;
-            }
             setInstance(N_, C_, u_, k, w_);
             if (this.dataset.activateRule) {
                 setRuleActive(this.dataset.activateRule, true);

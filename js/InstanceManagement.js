@@ -50,7 +50,9 @@ export function setInstance(N_, C_, u_, committeeSize_, w_) {
     document.getElementById('committee-size-range').max = state.C.length - 1;
     setCommitteeSize(committeeSize_);
     // if any weight is not 1, use weights
-    document.getElementById("weights").checked = settings.useWeights || Object.values(state.w).some(w => w != 1);
+    const useWeightsCheckbox = document.getElementById("weights");
+    useWeightsCheckbox.checked = settings.useWeights || Object.values(state.w).some(w => w != 1);
+    useWeightsCheckbox.dispatchEvent(new Event('change'));
 }
 
 export function setCommitteeSize(committeeSize_) {

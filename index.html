@@ -476,6 +476,21 @@
             </div>
         </div>
 
+        <div class="hystmodal" id="turn-off-weights-modal" aria-hidden="true">
+            <div class="hystmodal__wrap">
+                <div class="hystmodal__window" role="dialog" aria-modal="true">
+                    <button data-hystclose class="hystmodal__close">Close</button>
+                    <p>You are attempting to turn off weights. However, some voters currently have a weight 
+                        different from 1. How do you want to proceed?</p>
+                    <div style="display: flex; gap: 0.5em; flex-direction: column;">
+                        <button data-hystclose>Cancel and leave weights on</button>
+                        <button id="all-weights-1-button">Set all weights to 1</button>
+                        <button id="duplicate-voters-button">Duplicate voters to match their weight</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="hystmodal" id="rule-choice-modal" aria-hidden="true">
             <div class="hystmodal__wrap">
                 <div class="hystmodal__window" role="dialog" aria-modal="true">
