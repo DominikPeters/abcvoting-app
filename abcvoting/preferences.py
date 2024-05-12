@@ -134,7 +134,7 @@ class Profile:
         for voter in voters:
             self.add_voter(voter)
 
-    def totalweight(self):
+    def total_weight(self):
         """
         Return the totol weight of all voters, i.e., the sum of weights.
 
@@ -154,6 +154,76 @@ class Profile:
             bool
         """
         return all(voter.weight == 1 for voter in self._voters)
+
+    def convert_to_unit_weights(self):
+        """
+        Convert all voters with weights into the appropropriate number of unit-weight copies.
+
+        Only works if weights are integers.
+
+        Returns
+        -------
+            None
+
+        Examples
+        --------
+        .. doctest::
+
+            >>> profile = Profile(num_cand=3)
+            >>> profile.add_voter(Voter([0, 1], weight=2))
+            >>> profile.add_voter(Voter([2], weight=1))
+            >>> print(profile)
+            weighted profile with 2 voters and 3 candidates:
+             voter 0:   2 * {0, 1},
+             voter 1:   1 * {2}
+            >>> profile.convert_to_unit_weights()
+            >>> print(profile)
+            profile with 3 voters and 3 candidates:
+             voter 0:   {0, 1},
+             voter 1:   {0, 1},
+             voter 2:   {2}
+        """
+        new_voters = []
+        for voter in self._voters:
+            try:
+                for _ in range(voter.weight):
+                    new_voters.append(Voter(voter.approved))
+            except TypeError:
+                raise TypeError(
+                    "Converting a profile to unit weights is only possible with integer weights."
+                )
+        self._voters = new_voters
+
+    def convert_to_weighted(self):
+        """
+        Merge all voters with the same approval set into a single voter with appropropriate weight.
+
+        Returns
+        -------
+            None
+
+        Examples
+        --------
+        .. doctest::
+
+            >>> profile = Profile(num_cand=3)
+            >>> profile.add_voters([[0, 1], [0, 1], [2]])
+            >>> print(profile)
+            profile with 3 voters and 3 candidates:
+             voter 0:   {0, 1},
+             voter 1:   {0, 1},
+             voter 2:   {2}
+            >>> profile.convert_to_weighted()
+            >>> print(profile)
+            weighted profile with 2 voters and 3 candidates:
+             voter 0:   2 * {0, 1},
+             voter 1:   1 * {2}
+        """
+        approval_sets = {tuple(sorted(voter.approved)) for voter in self._voters}
+        weights = {appr: 0 for appr in approval_sets}
+        for voter in self._voters:
+            weights[tuple(sorted(voter.approved))] += voter.weight
+        self._voters = [Voter(appr, weight=weight) for appr, weight in weights.items()]
 
     def __iter__(self):
         return iter(self._voters)
@@ -187,6 +257,23 @@ class Profile:
                 output += f"{voter.weight} * "
             output += f"{misc.str_set_of_candidates(voter.approved, self.cand_names)},\n"
         return output[:-2]
+
+    def copy(self):
+        """
+        Return a copy of the profile.
+
+        This is a deep copy, i.e., all Voter objects are copied too.
+
+        Returns
+        -------
+            Profile
+        """
+        copy_profile = Profile(num_cand=self.num_cand)
+        copy_profile.add_voters(self._voters)
+        return copy_profile
+
+    __copy__ = copy
+    __deepcopy__ = copy
 
     def is_party_list(self):
         """
@@ -230,7 +317,7 @@ class Profile:
             )
         output = output[:-2]
         if not self.has_unit_weights():
-            output += "\ntotal weight: " + str(self.totalweight())
+            output += "\ntotal weight: " + str(self.total_weight())
         output += "\n"
 
         return output
@@ -248,7 +335,8 @@ class Voter:
         weight : int or Fraction, default=1
             The weight of the voter.
 
-            This should not be used as the number of voters with these approved candidates.
+            If `weight` is an integer, the voter is interpreted as if there are `weight`
+            many voters with the same approval set.
 
         num_cand : int, optional
             The maximum number of candidates. Used only for checks.

@@ -2,13 +2,13 @@
 Read and write data to files.
 
 Two data formats are supported:
-1. the Preflib format (soi, toi, soc or toc), and
+1. the Preflib format (soi, toi, soc, toc, or cat), and
 2. .abc.yaml files (more expressive than Preflib files).
 """
 
 import os
-from math import ceil
 import ruamel.yaml
+import preflibtools.instances as preflib
 from abcvoting.preferences import Profile, Voter
 from abcvoting import misc
 
@@ -50,7 +50,7 @@ def get_file_names(dir_name, filename_extensions=None):
             List of file names contained in the directory.
     """
     files = []
-    for (_, _, filenames) in os.walk(dir_name):
+    for _, _, filenames in os.walk(dir_name):
         files = filenames
         break  # do not consider sub-directories
     if len(files) == 0:
@@ -62,57 +62,7 @@ def get_file_names(dir_name, filename_extensions=None):
     return sorted(files)
 
 
-def _approval_set_from_preflib_datastructures(num_appr, ranking, candidate_map):
-    # if num_appr = 1 and the ranking starts with empty set, interpret as empty ballot and
-    # return set()
-    if (
-        num_appr == 1
-        and ranking[0].strip()[0] == "{"
-        and ranking[0].strip()[-1] == "}"
-        and ranking[0].strip().replace("}", "").replace("{", "").strip() == ""
-    ):
-        return set()
-
-    approval_set = set()
-    tied = False
-    for rank in ranking:
-        rank = rank.strip()
-        if rank.startswith("{"):
-            if not tied:
-                tied = True
-                rank = rank[1:]
-            else:
-                raise MalformattedFileException(
-                    "Invalid format for tied candidates: " + str(ranking)
-                )
-        if rank.endswith("}"):
-            if tied:
-                tied = False
-                rank = rank[:-1]
-            else:
-                raise MalformattedFileException(
-                    "Invalid format for tied candidates: " + str(ranking)
-                )
-        rank = rank.strip()
-        if len(rank) > 0:
-            try:
-                cand = int(rank)
-            except ValueError as error:
-                raise MalformattedFileException(
-                    f"Expected candidate number but encountered {rank}"
-                ) from error
-            approval_set.add(cand)
-        if len(approval_set) >= num_appr and not tied:
-            break
-    if tied:
-        raise MalformattedFileException("Invalid format for tied candidates: " + str(ranking))
-    if len(approval_set) < num_appr:
-        # all candidates approved
-        approval_set = set(candidate_map.keys())
-    return approval_set
-
-
-def read_preflib_file(filename, setsize=1, relative_setsize=None, use_weights=False):
+def read_preflib_file(filename, top_ranks=None, setsize=None, use_weights=False):
     """
     Read a Preflib file (soi, toi, soc or toc).
 
@@ -121,20 +71,21 @@ def read_preflib_file(filename, setsize=1, relative_setsize=None, use_weights=Fa
         filename : str
             Name of the Preflib file.
 
-        setsize : int
+        top_ranks : int, default=1
+            The approval set consists of the top entries in each voter's ranking in the Preflib
+            instance. The parameter `top_ranks` determines how many ranks are joined to create
+            the approval set. In case of of a Preflib category files, ranks correspond to
+            categories.
+
+            It cannot be used if parameter `setsize` is used too.
+
+        setsize : int, optional
             Minimum number of candidates that voters approve.
 
             These candidates are taken from the top of ranking.
             In case of ties, more than setsize candidates are approved.
 
-            Paramer `setsize` is ignored if `relative_setsize` is used.
-
-        relative_setsize : float
-            Proportion (number between 0 and 1) of candidates that voters approve (rounded up).
-
-            In case of ties, more candidates are approved.
-            E.g., if there are 10 candidates and `relative_setsize=0.75`,
-            then the voter approves the top 8 candidates.
+            It cannot be used if parameter `top_ranks` is used too.
 
         use_weights : bool, default=False
             Use weights of voters instead of individual voters.
@@ -148,81 +99,68 @@ def read_preflib_file(filename, setsize=1, relative_setsize=None, use_weights=Fa
         abcvoting.preferences.Profile
             Preference profile extracted from Preflib file.
     """
-    if setsize <= 0:
+    if top_ranks is None and setsize is None:
+        top_ranks = 1  # default
+    if top_ranks and setsize:
+        raise ValueError("Parameters top_ranks and setsize cannot be used simultaneously.")
+    if top_ranks and top_ranks <= 0:
+        raise ValueError("Parameter top_ranks must be > 0")
+    if setsize and setsize <= 0:
         raise ValueError("Parameter setsize must be > 0")
-    if relative_setsize and (relative_setsize <= 0.0 or relative_setsize > 1.0):
-        raise ValueError("Parameter relative_setsize not in interval (0, 1]")
-    with open(filename) as f:
-        line = f.readline()
-        num_cand = int(line.strip())
-        candidate_map = {}
-        for _ in range(num_cand):
-            parts = f.readline().strip().split(",")
-            candidate_map[int(parts[0].strip())] = ",".join(parts[1:]).strip()
 
-        parts = f.readline().split(",")
-        try:
-            voter_count, _, unique_orders = (int(p.strip()) for p in parts)
-        except ValueError as error:
-            raise MalformattedFileException(
-                f"Number of voters ill specified ({str(parts)}), should be triple of integers"
-            ) from error
+    try:
+        preflib_inst = preflib.get_parsed_instance(filename)
+    except Exception as e:
+        raise MalformattedFileException(
+            "The preflib parser returned the following error: " + str(e)
+        )
 
-        approval_sets = []
-        lines = [line.strip() for line in f.readlines() if line.strip()]
-        if len(lines) != unique_orders:
-            raise MalformattedFileException(
-                f"Expected {unique_orders} lines that specify voters in the input, "
-                f"encountered {len(lines)}"
+    if isinstance(preflib_inst, preflib.OrdinalInstance):
+        if setsize:
+            preflib_inst = preflib.CategoricalInstance.from_ordinal(
+                preflib_inst, size_truncators=[setsize]
             )
-
-    for line in lines:
-        parts = line.split(",")
-        if len(parts) < 1:
-            continue
-        try:
-            count = int(parts[0])
-        except ValueError as error:
-            raise MalformattedFileException(
-                f"Each ranking must start with count/weight ({line})."
-            ) from error
-        ranking = parts[1:]  # ranking starts after count
-        if len(ranking) == 0:
-            raise MalformattedFileException("Empty ranking: " + str(line))
-        if relative_setsize:
-            num_appr = int(ceil(len(ranking) * relative_setsize))
-        else:
-            num_appr = setsize
-        approval_set = _approval_set_from_preflib_datastructures(num_appr, ranking, candidate_map)
-        approval_sets.append((count, approval_set))
+        elif top_ranks:
+            preflib_inst = preflib.CategoricalInstance.from_ordinal(
+                preflib_inst, num_indif_classes=[1] * preflib_inst.num_alternatives
+            )
+    elif not isinstance(preflib_inst, preflib.CategoricalInstance):
+        raise ValueError("Only ordinal and categorical preferences can be converted from PrefLib")
 
     # normalize candidates to 0, 1, 2, ...
     cand_names = []
     normalize_map = {}
-    for cand, name in candidate_map.items():
+    for cand, name in preflib_inst.alternatives_name.items():
         cand_names.append(name)
         normalize_map[cand] = len(cand_names) - 1
 
-    profile = Profile(num_cand, cand_names=cand_names)
+    profile = Profile(preflib_inst.num_alternatives, cand_names=cand_names)
 
-    for count, approval_set in approval_sets:
-        normalized_approval_set = []
-        for cand in approval_set:
-            normalized_approval_set.append(normalize_map[cand])
+    for preferences, count in preflib_inst.multiplicity.items():
+        approval_set = []
+        if setsize:
+            category = 0
+            while len(approval_set) < setsize and category < len(preferences):
+                approval_set.extend([normalize_map[cand] for cand in preferences[category]])
+                category += 1
+            if 0 < len(approval_set) < setsize:
+                approval_set = normalize_map.values()
+        elif top_ranks:
+            approval_set = [
+                normalize_map[cand]
+                for category in range(min(len(preferences), top_ranks))
+                for cand in preferences[category]
+            ]
+
         if use_weights:
-            profile.add_voter(Voter(normalized_approval_set, weight=count))
+            profile.add_voter(Voter(approval_set, weight=count))
         else:
-            profile.add_voters([normalized_approval_set] * count)
-    if use_weights:
-        if len(profile) != unique_orders:
-            raise MalformattedFileException("Number of voters wrongly specified in preflib file.")
-    else:
-        if len(profile) != voter_count:
-            raise MalformattedFileException("Number of voters wrongly specified in preflib file.")
+            profile.add_voters([approval_set] * count)
+
     return profile
 
 
-def read_preflib_files_from_dir(dir_name, setsize=1, relative_setsize=None):
+def read_preflib_files_from_dir(dir_name, top_ranks=None, setsize=None):
     """
     Read all Preflib files (soi, toi, soc or toc) in a given directory.
 
@@ -231,20 +169,21 @@ def read_preflib_files_from_dir(dir_name, setsize=1, relative_setsize=None):
         dir_name : str
             Path of the directory to be searched for Preflib files.
 
+        top_ranks : int, default=1
+            The approval set consists of the top entries in each voter's ranking in the Preflib
+            instance. The parameter `top_ranks` determines how many ranks are joined to create
+            the approval set. In case of of a Preflib category files, ranks correspond to
+            categories.
+
+            It cannot be used if parameter `setsize` is used too.
+
         setsize : int
             Minimum number of candidates that voters approve.
 
             These candidates are taken from the top of ranking.
             In case of ties, more than setsize candidates are approved.
 
-            Paramer `setsize` is ignored if `relative_setsize` is used.
-
-        relative_setsize : float
-            Proportion (number between 0 and 1) of candidates that voters approve (rounded up).
-
-            In case of ties, more candidates are approved.
-            E.g., if there are 10 candidates and `relative_setsize=0.75`,
-            then the voter approves the top 8 candidates.
+            It cannot be used if parameter `top_ranks` is used too.
 
     Returns
     -------
@@ -252,20 +191,20 @@ def read_preflib_files_from_dir(dir_name, setsize=1, relative_setsize=None):
             Dictionary with file names as keys and profiles (class abcvoting.preferences.Profile)
             as values.
     """
-    files = get_file_names(dir_name, filename_extensions=[".soi", ".toi", ".soc", ".toc"])
+    files = get_file_names(dir_name, filename_extensions=[".soi", ".toi", ".soc", ".toc", ".cat"])
 
     profiles = {}
     for f in files:
         profile = read_preflib_file(
-            os.path.join(dir_name, f), setsize=setsize, relative_setsize=relative_setsize
+            os.path.join(dir_name, f), top_ranks=top_ranks, setsize=setsize
         )
         profiles[f] = profile
     return profiles
 
 
-def write_profile_to_preflib_toi_file(filename, profile):
+def write_profile_to_preflib_cat_file(filepath, profile):
     """
-    Write a profile to a Preflib .toi file.
+    Write a profile to a Preflib category file (.cat).
 
     Parameters
     ----------
@@ -279,21 +218,31 @@ def write_profile_to_preflib_toi_file(filename, profile):
     -------
         None
     """
-    with open(filename, "w") as f:
-        # write: number of candidates
-        f.write(str(profile.num_cand) + "\n")
-        # write: names of candidates
-        for cand in profile.candidates:
-            f.write(f"{cand + 1}, {profile.cand_names[cand]}\n")
-        # write: info about number of voters and total weight
-        total_weight = sum(voter.weight for voter in profile)
-        f.write(f"{total_weight}, {total_weight}, {len(profile)}\n")
-        # write: approval sets and weights
-        for voter in profile:
-            str_approval_set = misc.str_set_of_candidates(
-                voter.approved, cand_names=list(range(1, profile.num_cand + 1))
-            )
-            f.write(f"{voter.weight}, {str_approval_set}\n")
+    preflib_inst = preflib.CategoricalInstance()
+    preflib_inst.data_type = "cat"
+    preflib_inst.num_categories = 2
+    preflib_inst.categories_name = {"1": "Approved", "2": "Not approved"}
+    preflib_inst.file_name = os.path.basename(filepath)
+    preflib_inst.num_alternatives = profile.num_cand
+    for cand in profile.candidates:
+        preflib_inst.alternatives_name[cand + 1] = profile.cand_names[cand]
+
+    for voter in profile:
+        pref = (
+            tuple(cand + 1 for cand in voter.approved),
+            tuple(cand + 1 for cand in profile.candidates if cand not in voter.approved),
+        )
+        if int(voter.weight) == voter.weight:
+            multiplicity = voter.weight
+        else:
+            multiplicity = 1
+        if pref not in preflib_inst.preferences:
+            preflib_inst.preferences.append(pref)
+            preflib_inst.multiplicity[pref] = multiplicity
+        else:
+            preflib_inst.multiplicity[pref] += multiplicity
+    preflib_inst.recompute_cardinality_param()
+    preflib_inst.write(filepath)
 
 
 def _yaml_flow_style_list(x):

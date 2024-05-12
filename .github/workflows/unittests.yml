@@ -4,7 +4,13 @@
 
 name: Unittests
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+    branches: [ "master" ]
 
 jobs:
   unittests:
@@ -12,16 +18,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9, "3.10"]
+        python-version: [3.8, 3.9, "3.10", "3.11"]
+      fail-fast: false
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         # fetch all tags to be able to generate a version number for test packages
         fetch-depth: 0
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -61,7 +68,7 @@ jobs:
       run: coverage xml
 
     - name: Upload coverage metrics to codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
 
     # tests the package, the release is done in build.yml
     - name: Build a binary wheel and a source tarball
@@ -80,4 +87,4 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        repository_url: https://test.pypi.org/legacy/
+        repository-url: https://test.pypi.org/legacy/
