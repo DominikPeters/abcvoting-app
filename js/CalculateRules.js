@@ -88,14 +88,16 @@ export async function calculateRules() {
         let profileString = "[";
         for (let i of state.N) {
             let voterString = "{";
+            let voteEmpty = true;
             for (let j of state.C) {
                 if (state.u[j][i] == 1) {
                     voterString += j + ",";
+                    voteEmpty = false;
                 }
             }
             voterString = voterString.slice(0, -1); // remove trailing comma
             voterString += "}";
-            if (voterString != '}') {
+            if (!voteEmpty) {
                 profileString += voterString + ",";
             }
         }
@@ -108,15 +110,17 @@ export async function calculateRules() {
         let profileString = "[";
         for (let i of state.N) {
             let voterString = "([";
+            let voteEmpty = true;
             for (let j of state.C) {
                 if (state.u[j][i] == 1) {
                     voterString += j + ",";
+                    voteEmpty = false;
                 }
             }
             voterString = voterString.slice(0, -1); // remove trailing comma
             voterString += "], ";
             voterString += state.w[i] + ")";
-            if (voterString != '(], 1)') {
+            if (!voteEmpty) {
                 profileString += voterString + ",";
             }
         }
