@@ -40,7 +40,6 @@ export function populateRandomizerModal(attachListeners=false) {
             document.getElementById("Euclidean fixed-size-warning").style.display = "none";
             if (radio.value == "Euclidean VCR" &&
                 document.getElementById("Euclidean VCR-voter_prob_distribution").value.includes("1d") != document.getElementById("Euclidean VCR-candidate_prob_distribution").value.includes("1d")) {
-                console.log("hi")
                 randomizer["voter_prob_distribution"] = "1d_interval";
                 randomizer["candidate_prob_distribution"] = "1d_interval";
                 document.getElementById("Euclidean VCR-warning").style.display = "block";
@@ -87,6 +86,6 @@ export function randomize() {
     `));
     let u_ = result.u;
     let w_ = result.w;
-    setInstance(state.N, state.C, u_, state.committeeSize);
+    setInstance(state.N, state.C, u_, state.committeeSize, w_);
     buildTable();
 }
