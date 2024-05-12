@@ -17,15 +17,11 @@ export function buildTable() {
     // header row
     var header = table.createTHead();
     var row = header.insertRow(0);
-    var cell = row.insertCell(0);
-    var cellWeightHeader = row.insertCell();
-    cellWeightHeader.innerHTML = "Weight";
-    cellWeightHeader.classList.add("weight-cell")
-    if (!settings.useWeights){
-        var weightCells = document.getElementsByClassName("weight-cell");
-        for (var i = 0; i < weightCells.length; i++) {
-            var cell = weightCells[i].classList.toggle("hidden-column");
-        }
+    var cell = row.insertCell(0); // empty header for "voter" column
+    if (settings.useWeights) {
+        var cellWeightHeader = row.insertCell();
+        cellWeightHeader.innerHTML = "Weight";
+        cellWeightHeader.classList.add("weight-cell")
     }
 
     for (var j of state.C) {
@@ -60,27 +56,26 @@ export function buildTable() {
             });
         }
         
-        var weightCell = row.insertCell();
-        weightCell.classList.add("weight-cell");
-        if (!settings.useWeights){
-            weightCell.classList.add("hidden-column");
+        if (settings.useWeights) {
+            var weightCell = row.insertCell();
+            weightCell.classList.add("weight-cell");
+            weightCell.id = "voter"+ i + "-weight"
+            var weightInput = document.createElement("input");
+            weightInput.type = "number";
+            weightInput.min = 1;
+            weightInput.value = state.w[i];
+            weightInput.dataset.voter = i;
+            weightInput.addEventListener("change", function () {
+                if (this.value < 1) {
+                    this.value = 1;
+                }
+                this.value = parseFloat(this.value);
+                state.w[this.dataset.voter] = parseFloat(this.value);
+                buildTable();
+            });
+            weightInput.style.width = "50px";
+            weightCell.appendChild(weightInput);
         }
-        weightCell.id = "voter"+ i + "-weight"
-        var weightInput = document.createElement("input");
-        weightInput.type = "number";
-        weightInput.min = 1;
-        weightInput.value = state.w[i]; // Set the initial value to the respective voter's weight
-        weightInput.dataset.voter = i; // Store the voter index for later reference
-        weightInput.addEventListener("change", function () {
-            if (this.value < 1) {
-                this.value = 1;
-            }
-            this.value = parseFloat(this.value);
-            state.w[this.dataset.voter] = parseFloat(this.value); // Update the state with the new weight value
-            buildTable();
-        });
-        weightInput.style.width = "50px";
-        weightCell.appendChild(weightInput);
         for (var j of state.C) {
             var cell = row.insertCell();
             cell.id = "voter" + i + "-candidate" + j + "-cell";
@@ -135,10 +130,8 @@ export function buildTable() {
             row.id = "rule-" + rule + "-row";
             row.classList.add("rule-row");
             let cell = row.insertCell();
-            let emptyWeightCell = row.insertCell();
-            emptyWeightCell.classList.add('weight-cell');
-            if (!settings.useWeights) {
-                emptyWeightCell.classList.add("hidden-column");
+            if (settings.useWeights) {
+                cell.colSpan = 2;
             }
             let span = document.createElement("span");
             span.innerHTML = rules[rule].shortName;

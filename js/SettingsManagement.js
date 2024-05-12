@@ -40,17 +40,15 @@ export function changeUseWeightSetting() {
                 }
             }
         }
-        for (let i = 0; i < weightCells.length; i++) {
-            var cell = weightCells[i].classList.toggle("hidden-column");
-        }
         settings.useWeights = useWeights.checked;
+        document.body.classList.toggle("using-weights", useWeights.checked);
+        buildTable();
         if (window.pyodide) {
             if (useWeights.checked) {
                 rulesDontSupportWeight();
             } else {
                 calculateRules();
             }
-
         }
     });
 }

@@ -234,6 +234,11 @@ table td:first-child {
     text-align: left;
 }
 
+body.using-weights table th:first-child,
+body.using-weights table td:first-child {
+    width: auto;
+}
+
 table tbody tr:first-child td {
     border-top: 0;
 }

@@ -196,6 +196,9 @@ export async function calculateRules() {
                 // need to add rows
                 let row = tBody.insertRow();
                 let cell = row.insertCell();
+                if (settings.useWeights) {
+                    cell.colSpan = 2;
+                }
                 let span = document.createElement("span");
                 span.innerHTML = rules[rule].shortName;
                 tippy(span, {
