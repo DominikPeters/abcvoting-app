@@ -73,7 +73,6 @@ export function buildTable() {
                 state.w[this.dataset.voter] = parseFloat(this.value);
                 buildTable();
             });
-            weightInput.style.width = "50px";
             weightCell.appendChild(weightInput);
         }
         for (var j of state.C) {

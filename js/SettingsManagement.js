@@ -25,11 +25,11 @@ export function addSettingChangeHandlers() {
         document.getElementById('showPropertyinTable').checked = true;
         changeSetting();
     });
-}
-
-export function changeUseWeightSetting() {
-    let useWeights = document.getElementById("weights");
+    const useWeights = document.getElementById("weights");
     useWeights.addEventListener("change", function () {
+        if (useWeights.checked == settings.useWeights) {
+            return; // no change
+        }
         var weightCells = document.getElementsByClassName("weight-cell");
         if (!useWeights.checked) {
             for (let i = 1; i < weightCells.length; i++) {
