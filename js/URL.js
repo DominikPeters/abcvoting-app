@@ -4,7 +4,7 @@ import { loadMatrix } from './InstanceManagement.js';
 import { buildTable } from './TableBuilder.js';
 
 function writeURL() {
-    let profileMatrix =  profileToMatrix(state,settings.useWeights);
+    let profileMatrix =  profileToMatrix(state, settings.useWeights);
     let stateString = `${state.committeeSize}&` + profileMatrix.replaceAll("\n", "&").slice(0, -1);
     if (stateString != window.location.search.substring(1)) {
         window.history.pushState({}, "", window.location.origin + window.location.pathname + "?" + stateString);
@@ -12,22 +12,31 @@ function writeURL() {
 }
 
 export function copyURL() {
-    let profileMatrix = profileToMatrix(state,settings.useWeights);
+    let profileMatrix = profileToMatrix(state, settings.useWeights);
     let stateString = `${state.committeeSize}&` + profileMatrix.replaceAll("\n", "&").slice(0, -1);
     let URL = window.location.origin + window.location.pathname + "?" + stateString;
     let button = document.getElementById("copy-url-button");
     let originalHTML = button.innerHTML;
-    navigator.clipboard.writeText(URL).then(function () {
-        button.innerHTML = "✓ Copied!";
+    try {
+        navigator.clipboard.writeText(URL).then(function () {
+            button.innerHTML = "✓ Copied!";
+            setTimeout(function () {
+                button.innerHTML = originalHTML;
+            }, 1000);
+        });
+    } catch (e) {
+        console.error(e);
+        button.innerHTML = "✗ Copy failed";
         setTimeout(function () {
             button.innerHTML = originalHTML;
         }, 1000);
-    });
+        console.log("URL: " + URL);
+    }
 }
 
 function loadStandardInstance() {
     let matrix = "111100000000000\n111010000000000\n111001000000000\n000000111000000\n000000000111000\n000000000000111";
-    loadMatrix(matrix, true);
+    loadMatrix(matrix);
     state.committeeSize = 12;
 }
 
@@ -45,7 +54,10 @@ export function readURL() {
             }
             
             state.committeeSize = committeeSize_;
-            if (!loadMatrix(matrix)) {
+            try {
+                loadMatrix(matrix)
+            } catch (e) {
+                console.error(e);
                 loadStandardInstance();
             }
         } catch (e) {

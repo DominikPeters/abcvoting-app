@@ -56,7 +56,7 @@ json.dumps(return_object)
                             let u_ = yamlImport.u;
                             let w_ = yamlImport.w;
                             let committeeSize_ = yamlImport.committeesize;
-                            if (yamlImport.with_weights){
+                            if (yamlImport.with_weights) {
                                 settings.useWeights = true;
                                 let useWeights = document.getElementById("weights");
                                 useWeights.checked = true;
@@ -65,7 +65,7 @@ json.dumps(return_object)
                                 let useWeights = document.getElementById("weights");
                                 useWeights.checked = false;
                             }
-                            setInstance(N_, C_, u_, committeeSize_,w_);
+                            setInstance(N_, C_, u_, committeeSize_, w_);
                             buildTable();
                         } catch (e) {
                             console.log(e);
@@ -96,7 +96,7 @@ json.dumps(return_object)
                             let C_ = Array.from(Array(preflibImport.num_cand).keys());
                             let u_ = preflibImport.u;
                             let w_ = preflibImport.w;
-                            if (preflibImport.with_weights){
+                            if (preflibImport.with_weights) {
                                 settings.useWeights = true;
                                 let useWeights = document.getElementById("weights");
                                 useWeights.checked = true;

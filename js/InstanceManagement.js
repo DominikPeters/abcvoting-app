@@ -4,6 +4,7 @@ import { buildTable } from './TableBuilder.js';
 export function addVoter() {
     let newVoter = state.N.slice(-1)[0] + 1;
     state.N.push(newVoter);
+    state.w[newVoter] = 1;
     for (let j of state.C) {
         state.u[j][newVoter] = 0;
     }
@@ -33,6 +34,10 @@ export function deleteCandidate(candidate) {
 
 export function deleteVoter(voter) {
     state.N.splice(state.N.indexOf(parseInt(voter)), 1);
+    delete state.w[voter];
+    for (let j of state.C) {
+        delete state.u[j][voter];
+    }
     buildTable();
 }
 
@@ -44,6 +49,10 @@ export function setInstance(N_, C_, u_, committeeSize_, w_) {
     document.getElementById('committee-size-input').max = state.C.length - 1;
     document.getElementById('committee-size-range').max = state.C.length - 1;
     setCommitteeSize(committeeSize_);
+    // if any weight is not 1, use weights
+    const useWeightsCheckbox = document.getElementById("weights");
+    useWeightsCheckbox.checked = settings.useWeights || Object.values(state.w).some(w => w != 1);
+    useWeightsCheckbox.dispatchEvent(new Event('change'));
 }
 
 export function setCommitteeSize(committeeSize_) {
@@ -52,52 +61,39 @@ export function setCommitteeSize(committeeSize_) {
     document.getElementById('committee-size-range').value = state.committeeSize;
 }
 
-export function loadMatrix(matrix, standard=false) {
+export function loadMatrix(matrix) {
     var lines = matrix.split('\n');
     // remove empty lines
     lines = lines.filter(line => line.length > 0);
-    // check that all lines have the same length
-    let no_weights = standard || !settings.useWeights
-    if (((no_weights &&
-        lines.every(line => line.length === lines[0].length)) ||
-        settings.useWeights &&
-        lines.every(line => line.split('*')[1].length === lines[0].split('*')[1].length))) {
-
-        let numCands = lines[0].length;
-        if (settings.useWeights && !standard){
-            numCands = lines[0].length - lines[0].split('*')[0].length;
-        }
-        let numVoters = lines.length;
-        let N_ = Array.from(Array(numVoters).keys());
-        let C_ = Array.from(Array(numCands).keys());
-        let u_ = {};
-        let w_ = {};
-        let weightsString = []
-        if (!no_weights){
-            for (let k in N_){
-                weightsString[k] = lines[k].split('*')[0]
-                w_[k] = parseFloat(weightsString[k])
-            }
-            for (let j of C_) {
-                u_[j] = {};
-                for (let i of N_) {
-                    u_[j][i] = parseInt(lines[i][j+weightsString[i].length]);
-                }
-            }
-        } else {
-            for (let k in N_){
-                w_[k] = 1
-            }
-            for (let j of C_) {
-                u_[j] = {};
-                for (let i of N_) {
-                    u_[j][i] = parseInt(lines[i][j]);
-                }
-            }
-        }
-        setInstance(N_, C_, u_, state.committeeSize, w_);
-        return true;
-    } else {
-        return false;
+    if (lines.length == 0) {
+        return;
     }
+    // check that all lines have the same length
+    const numCands = lines[0].indexOf('*') == -1 ? lines[0].length : lines[0].split('*')[1].length;
+    const numVoters = lines.length;
+    const N_ = Array.from(Array(numVoters).keys());
+    const C_ = Array.from(Array(numCands).keys());
+    const u_ = {};
+    const w_ = {};
+    const uStrings = {};
+    for (let k in N_) {
+        const parts = lines[k].split('*');
+        if (parts.length == 2) {
+            w_[k] = parseInt(parts[0]);
+            uStrings[k] = parts[1];
+        } else {
+            w_[k] = 1;
+            uStrings[k] = lines[k];
+        }
+        if (uStrings[k].length != numCands) {
+            throw new Error("Inconsistent number of candidates");
+        }
+    }
+    for (let j of C_) {
+        u_[j] = {};
+        for (let i of N_) {
+            u_[j][i] = parseInt(uStrings[i][j]);
+        }
+    }
+    setInstance(N_, C_, u_, state.committeeSize, w_);
 }

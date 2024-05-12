@@ -158,7 +158,7 @@
             </div>
             <div class="checkbox-option">
                 <input type="checkbox" id="weights">
-                <label for="live-mode">Use weights</label>
+                <label for="weights">Use weights</label>
             </div>
             <!-- <div class="checkbox-option">
                 <input type="checkbox" id="resolute" checked>
@@ -215,7 +215,7 @@
                 Built using the <a href="https://github.com/martinlackner/abcvoting">abcvoting</a> package by
                 Lackner et al.<br>
                 <a href="https://github.com/DominikPeters/abcvoting-app">Web version</a> by <a href="https://dominik-peters.de">Dominik Peters</a>
-                &middot; updated April 2024
+                &middot; updated May 2024
             </p>
         </aside>
 
@@ -476,6 +476,21 @@
             </div>
         </div>
 
+        <div class="hystmodal" id="turn-off-weights-modal" aria-hidden="true">
+            <div class="hystmodal__wrap">
+                <div class="hystmodal__window" role="dialog" aria-modal="true">
+                    <button data-hystclose class="hystmodal__close">Close</button>
+                    <p>You are attempting to turn off weights. However, some voters currently have a weight 
+                        different from 1. How do you want to proceed?</p>
+                    <div style="display: flex; gap: 0.5em; flex-direction: column;">
+                        <button data-hystclose>Cancel and leave weights on</button>
+                        <button id="all-weights-1-button">Set all weights to 1</button>
+                        <button id="duplicate-voters-button">Duplicate voters to match their weight</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="hystmodal" id="rule-choice-modal" aria-hidden="true">
             <div class="hystmodal__wrap">
                 <div class="hystmodal__window" role="dialog" aria-modal="true">
@@ -509,21 +524,21 @@
                                 Voting with Approval Preferences", Springer,
                                 Example 2.1</span>
                         </li>
-                        <li><button data-num-cands="12" data-k="10" data-activate-rule="pav"
-                                data-profile="[[0, 10]] * 3 + [[0, 11]] * 3 + [[1, 2, 3, 4, 5, 6, 7, 8, 9]] * 14">Load</button>
+                        <li><button data-num-cands="12" data-k="10" data-activate-rule="pav" data-weights="1"
+                                data-profile="[((0, 10), 3), ((0, 11), 3), ((1, 2, 3, 4, 5, 6, 7, 8, 9), 14)]">Load</button>
                             PAV fails core
                             <span class="citation">Aziz et al, 2016, "Justified Representation in Approval-Based
                                 Committee Voting", Example 6</span>
                         </li>
-                        <li><button data-num-cands="7" data-k="6" data-activate-rule="seqpav"
-                                data-profile="[{0, 1, 2, 3, 5}] + [{0, 1, 2, 4}] * 2 + [{0, 1, 2, 5}] + [{0, 1, 3, 4}] * 9 + [{0, 1, 3, 5}] * 4 + [{0, 1, 5}] * 2 + [{0, 2, 3, 4}] * 2 + [{0, 2, 3, 5}] + [{0, 2, 4}] * 5 + [{0, 2, 5}] * 8 + [{0, 3, 5}] * 3 + [{1, 2, 4}] * 2 + [{1, 2, 5}] * 6 + [{1, 3}] * 5 + [{1, 4}] * 4 + [{1, 5}] + [{2, 3}] * 5 + [{2, 4}] * 3 + [{2, 5}] + [{3}] * 7 + [{4}] * 9 + [{5}] * 9 + [{6}] * 18">Load</button>
+                        <li><button data-num-cands="7" data-k="6" data-activate-rule="seqpav" data-weights="1"
+                                data-profile="[({0, 1, 2, 3, 5}, 1), ({0, 1, 2, 4}, 2), ({0, 1, 2, 5}, 1), ({0, 1, 3, 4}, 9), ({0, 1, 3, 5}, 4), ({0, 1, 5}, 2), ({0, 2, 3, 4}, 2), ({0, 2, 3, 5}, 1), ({0, 2, 4}, 5), ({0, 2, 5}, 8), ({0, 3, 5}, 3), ({1, 2, 4}, 2), ({1, 2, 5}, 6), ({1, 3}, 5), ({1, 4}, 4), ({1, 5}, 1), ({2, 3}, 5), ({2, 4}, 3), ({2, 5}, 1), ({3}, 7), ({4}, 9), ({5}, 9), ({6}, 18)]">Load</button>
                             Seq-PAV fails JR (minimal example, <i>k</i> = 6, 108 voters)
                             <span class="citation">Sánchez-Fernández et al, 2016, "<a
                                     href="https://arxiv.org/pdf/1611.09928.pdf#page=9">Proportional Justified
                                     Representation</a>", Table 2</span>
                         </li>
-                        <li><button data-num-cands="14" data-k="12" data-activate-rule="seqphragmen"
-                                data-profile="[[0, 1, 2]] * 2 + [[0, 1, 3]] * 2 + [[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]] * 6 + [[3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]] * 5 + [[4, 5, 6, 7, 8, 9, 10, 11, 12, 13]] * 9">Load</button>
+                        <li><button data-num-cands="14" data-k="12" data-activate-rule="seqphragmen" data-weights="1"
+                                data-profile="[([0, 1, 2], 2), ([0, 1, 3], 2), ([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 6), ([3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 5), ([4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 9)]">Load</button>
                             Seq-Phragmén fails EJR
                             <span class="citation">Brill et al, 2021, "Phragmen's Voting Methods and Justified
                                 Representation", Example 6</span>
@@ -534,26 +549,19 @@
                             <span class="citation">Brill et al, 2021, "Phragmen's Voting Methods and Justified
                                 Representation", Example 5</span>
                         </li>
-                        <li><button data-num-cands="12" data-k="5" data-activate-rule="revseqpav"
-                                data-profile="[{11, 1, 3, 5}] * 4 + [{11, 2, 4, 6}] * 4 + [{1}, {2}, {3}, {4}, {5}, {6}] + [[7, 8, 9, 10, 0]] * 26">Load</button>
+                        <li><button data-num-cands="12" data-k="5" data-activate-rule="revseqpav" data-weights="1"
+                                data-profile="[({11, 1, 3, 5}, 4), ({11, 2, 4, 6}, 4), ({1}, 1), ({2}, 1), ({3}, 1), ({4}, 1), ({5}, 1), ({6}, 1), ([7, 8, 9, 10, 0], 26)]">Load</button>
                             Rev-Seq-PAV fails JR
                             <span class="citation">Aziz, 2017, "A Note on Justified Representation Under the Reverse
                                 Sequential PAV
                                 rule", Proposition 2 for <i>k</i> = 5</span>
-                        </li>
-                        <li><button data-num-cands="5" data-k="3" data-activate-rule="seqpav"
-                                data-profile="[{0, 2, 4}] * 10 + [{0, 1, 4}] * 9 + [{0, 1}] + [{1, 3}] * 8 + [{2, 3}] * 8">Load</button>
-                            Seq-Phragmén/seq-PAV/Equal Shares fail Pareto optimality
-                            <span class="citation">Lackner and Skowron, 2020, "Utilitarian welfare and representation
-                                guarantees of approval-based multiwinner rules",
-                                Example 2</span>
                         </li>
                         <li><button data-num-cands="5" data-k="3" data-activate-rule="seqpav" data-weights="1"
                             data-profile="[([0, 2, 4], 10), ([0, 1, 4], 9), ([0, 1], 1), ([1, 3], 8), ([2, 3], 8)]">Load</button>
                         Seq-Phragmén/seq-PAV/Equal Shares fail Pareto optimality
                         <span class="citation">Lackner and Skowron, 2020, "Utilitarian welfare and representation
                             guarantees of approval-based multiwinner rules",
-                            Example 2 with weights</span>
+                            Example 2</span>
                     </li>
                     </ul>
                 </div>

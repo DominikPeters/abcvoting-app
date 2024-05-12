@@ -22,21 +22,22 @@ export function populateExportModal() {
     `);
     document.getElementById("cat-export").innerHTML = resultPreflibCat;
     // abcvoting yaml export
-    let compute_instances = [];
+    let computeInstances = [];
     for (let rule in rules) {
-        if (rules[rule].active) {
-            compute_instances.push({
+        if (rules[rule].active && state.storedCommittee[rule]) {
+            computeInstances.push({
                 "rule_id": rule,
                 "result": [state.storedCommittee[rule]],
                 "resolute": settings.resolute,
             });
         }
     }
+    const computeInstancesString = JSON.stringify(computeInstances).replaceAll("true", "True").replaceAll("false", "False");
     let resultYaml = window.pyodide.runPython(`
         fileio.write_abcvoting_instance_to_yaml_file(
             profile=profile, 
             committeesize=${state.committeeSize}, 
-            compute_instances=${JSON.stringify(compute_instances).replaceAll("true", "True").replaceAll("false", "False")}
+            compute_instances=${computeInstancesString}
         )
     `);
     document.getElementById("yaml-export").innerHTML = resultYaml;

@@ -1,5 +1,5 @@
 import { setRuleActive } from './RuleSelection.js';
-import { buildTable } from './TableBuilder.js'; 
+import { buildTable } from './TableBuilder.js';
 import { setInstance } from './InstanceManagement.js';
 import { settings } from './globalState.js';
 
@@ -8,8 +8,8 @@ export function populateLibraryModal() {
     for (let button of document.querySelectorAll("#library-list button")) {
         button.addEventListener('click', function () {
             let numCands = parseInt(this.dataset.numCands);
-            let k = parseInt(this.dataset.k)
-            let with_weights = this.dataset.weights? "True" : "False"
+            let k = parseInt(this.dataset.k);
+            let with_weights = this.dataset.weights ? "True" : "False";
             let result = JSON.parse(window.pyodide.runPython(`
                 profile = Profile(num_cand=${numCands})
                 if ${with_weights}:
@@ -26,18 +26,9 @@ export function populateLibraryModal() {
             `));
             let u_ = result.u;
             let N_ = Array.from(Array(result.n).keys());
-            let w_ = result.w
+            let w_ = result.w;
             let C_ = Array.from(Array(numCands).keys());
-            if (this.dataset.weights){
-                settings.useWeights = true;
-                let useWeights = document.getElementById("weights");
-                useWeights.checked = true;
-            } else {
-                settings.useWeights = false;
-                let useWeights = document.getElementById("weights");
-                useWeights.checked = false;
-            }
-            setInstance(N_, C_, u_, k,w_);
+            setInstance(N_, C_, u_, k, w_);
             if (this.dataset.activateRule) {
                 setRuleActive(this.dataset.activateRule, true);
             }
