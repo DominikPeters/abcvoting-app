@@ -23,7 +23,7 @@ export async function loadPython() {
         micropip.install("ruamel.yaml", deps=False)`);
     loading.innerHTML = "Loading... (80%)";
     // await micropip.install("/abcvoting-master/dist/abcvoting-0.0.0-py3-none-any.whl?" + Math.random(), keep_going = true);
-    await micropip.install("abcvoting/abcvoting-2.9.0.dev0-py3-none-any.whl", true);
+    await micropip.install("abcvoting/abcvoting-2.11.0-py3-none-any.whl", true);
     loading.innerHTML = "Loading... (90%)";
     await window.pyodide.runPython(`
         import js
