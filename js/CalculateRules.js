@@ -1,6 +1,8 @@
 import { settings, state } from './globalState.js';
 import { rules, properties } from './constants.js';
 import { startLog, getLog, storedLogs } from './logger.js';
+import { setRuleActive } from './RuleSelection.js';
+import { buildTable } from "./TableBuilder.js";
 
 function computeTiedCommittees() {
     let rule = document.getElementById("compute-tied-committees-button").dataset.rule;
@@ -140,9 +142,6 @@ export async function calculateRules() {
         if (!rules[rule].active) {
             continue;
         }
-        if (handleRuleDoesntSupportWeight(rule)) {
-            continue;
-        }
         if (settings.resolute) {
             setTimeout(() => {
                 let computeReturn = _calculateRule(rule);
@@ -224,24 +223,14 @@ export async function rulesDontSupportWeight() {
     if (!settings.liveMode) {
         return;
     }
+    let deactivatedRule = false;
     for (let rule in rules) {
-        if (!rules[rule].active) {
-            continue;
+        if (settings.useWeights && rules[rule].active && !rules[rule].weight) {
+            setRuleActive(rule, false);
+            deactivatedRule = true;
         }
-        handleRuleDoesntSupportWeight(rule);
     }
-}
-
-function handleRuleDoesntSupportWeight(rule) {
-    if (settings.useWeights && !rules[rule].weight) {
-        for (let j of state.C) {
-            let cell = document.getElementById("rule-" + rule + "-candidate-" + j + "-cell");
-            cell.innerHTML = "";
-            cell.className = "";
-        }
-        let row = document.getElementById("rule-" + rule + "-row");
-        row.classList.remove("rule-row");
-        return true;
+    if (deactivatedRule) {
+        buildTable();
     }
-    return false;
 }

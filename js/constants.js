@@ -128,19 +128,19 @@ export const rules = {
         "fullName": "Method of Equal Shares (aka Rule X) with Phragmén phase",
         "shortName": "Equal Shares",
         "active": 1,
-        "weight": false
+        "weight": true
     },
     "equal-shares-with-av-completion": {
         "fullName": "Method of Equal Shares (aka Rule X) with AV completion",
         "shortName": "Equal Shares + AV",
         "active": 0,
-        "weight": false
+        "weight": true
     },
     "equal-shares-with-increment-completion": {
         "fullName": "Method of Equal Shares (aka Rule X) with increment completion",
         "shortName": "Equal Shares + incr.",
         "active": 0,
-        "weight": false
+        "weight": true
     },
     "phragmen-enestroem": {
         "fullName": "Method of Phragmén-Eneström",
