@@ -19,6 +19,7 @@ export function addCandidate() {
         state.u[newCandidate][i] = 0;
     }
     document.getElementById('committee-size-input').max = state.C.length - 1;
+    document.getElementById('committee-size-range').max = state.C.length - 1;
     buildTable();
 }
 
