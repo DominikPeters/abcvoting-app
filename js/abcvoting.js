@@ -50,6 +50,9 @@ document.addEventListener('DOMContentLoaded', function () {
         el.disabled = true;
     });
 
+    document.getElementById("committee-size-input").max = state.C.length - 1;
+    document.getElementById("committee-size-range").max = state.C.length - 1;
+
     document.getElementById("committee-size-input").addEventListener('input', function () {
         setCommitteeSize(parseInt(document.getElementById("committee-size-input").value));
         buildTable();
