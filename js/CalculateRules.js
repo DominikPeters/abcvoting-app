@@ -6,10 +6,14 @@ import { buildTable } from "./TableBuilder.js";
 
 function computeTiedCommittees() {
     let rule = document.getElementById("compute-tied-committees-button").dataset.rule;
-    let result = _calculateRule(rule, true)[0];
+    let button = document.getElementById("compute-tied-committees-button");
+    let maxNumOfCommittees = parseInt(button.dataset.maxNumOfCommittees) || 10;
+    let result = _calculateRule(rule, true, maxNumOfCommittees)[0];
     let pre = document.getElementById("committee-info-modal-all-committees");
     pre.innerHTML = "";
     pre.innerHTML = result.map(committee => committee.join(",")).join("\n");
+    button.dataset.maxNumOfCommittees = maxNumOfCommittees * 2;
+    button.innerHTML = `Compute more (up to ${button.dataset.maxNumOfCommittees})`;
 }
 
 function populateCommitteeInfoModal(rule) {
@@ -46,7 +50,7 @@ function populateCommitteeInfoModal(rule) {
     }, 0);
 }
 
-function _calculateRule(rule, forceIrresolute = false) {
+function _calculateRule(rule, forceIrresolute = false, maxNumOfCommittees = 10) {
     startLog();
     let result;
     if (settings.resolute && !forceIrresolute) {
@@ -68,7 +72,7 @@ function _calculateRule(rule, forceIrresolute = false) {
                 profile, 
                 committeesize=${state.committeeSize}, 
                 resolute=False,
-                max_num_of_committees=10,
+                max_num_of_committees=${maxNumOfCommittees},
                 preferfractions=${settings.useFractions ? "True" : "False"},
             )
             results = [[c for c in committee] for committee in raw_results]
