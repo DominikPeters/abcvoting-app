@@ -4,22 +4,20 @@ import { startLog, getLog, storedLogs } from './logger.js';
 import { setRuleActive } from './RuleSelection.js';
 import { buildTable } from "./TableBuilder.js";
 
-function computeTiedCommittees() {
-    let rule = document.getElementById("compute-tied-committees-button").dataset.rule;
-    let button = document.getElementById("compute-tied-committees-button");
-    let maxNumOfCommittees = parseInt(button.dataset.maxNumOfCommittees) || 10;
-    let result = _calculateRule(rule, true, maxNumOfCommittees)[0];
+function computeTiedCommittees(computeAll=False) {
+    let rule = document.getElementById("compute-some-tied-committees-button").dataset.rule;
+    let result = _calculateRule(rule, true, computeAll)[0];
     let pre = document.getElementById("committee-info-modal-all-committees");
     pre.innerHTML = "";
     pre.innerHTML = result.map(committee => committee.join(",")).join("\n");
-    button.dataset.maxNumOfCommittees = maxNumOfCommittees * 2;
-    button.innerHTML = `Compute more (up to ${button.dataset.maxNumOfCommittees})`;
 }
 
 function populateCommitteeInfoModal(rule) {
     document.getElementById("committee-info-modal-log").innerHTML = storedLogs[rule].join("\n");
-    document.getElementById("compute-tied-committees-button").dataset.rule = rule;
-    document.getElementById("compute-tied-committees-button").addEventListener("click", computeTiedCommittees);
+    document.getElementById("compute-some-tied-committees-button").dataset.rule = rule;
+    document.getElementById("compute-all-tied-committees-button").dataset.rule = rule;
+    document.getElementById("compute-some-tied-committees-button").addEventListener("click", () => {computeTiedCommittees(false)});
+    document.getElementById("compute-all-tied-committees-button").addEventListener("click", () => {computeTiedCommittees(true)});
     let pre = document.getElementById("committee-info-modal-all-committees");
     pre.innerHTML = "";
     // compute properties
@@ -50,7 +48,7 @@ function populateCommitteeInfoModal(rule) {
     }, 0);
 }
 
-function _calculateRule(rule, forceIrresolute = false, maxNumOfCommittees = 10) {
+function _calculateRule(rule, forceIrresolute = false, computeAll) {
     startLog();
     let result;
     if (settings.resolute && !forceIrresolute) {
@@ -72,7 +70,7 @@ function _calculateRule(rule, forceIrresolute = false, maxNumOfCommittees = 10) 
                 profile, 
                 committeesize=${state.committeeSize}, 
                 resolute=False,
-                max_num_of_committees=${maxNumOfCommittees},
+                max_num_of_committees=${computeAll ? "None" : "10"},
                 preferfractions=${settings.useFractions ? "True" : "False"},
             )
             results = [[c for c in committee] for committee in raw_results]
