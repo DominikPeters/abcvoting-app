@@ -1591,16 +1591,22 @@ def _check_FJR_pulp(profile, committee, quota):
     """
 
     committeesize = len(committee)
+    set_upper_bound = int(profile.total_weight() / quota)
+    beta_up_bound = max(set_upper_bound, 1)
 
     model = pulp.LpProblem("FJR_check", pulp.LpMinimize)
 
     set_of_voters = pulp.LpVariable.dicts("voters", range(len(profile)), cat=pulp.LpBinary)
     set_of_candidates = pulp.LpVariable.dicts("candidates", range(profile.num_cand), cat=pulp.LpBinary)
-    beta = pulp.LpVariable("beta", lowBound=1, upBound=committeesize, cat=pulp.LpInteger)
+    beta = pulp.LpVariable("beta", lowBound=1, upBound=beta_up_bound, cat=pulp.LpInteger)
     model += beta <= pulp.lpSum(set_of_candidates.values())
+    model += beta <= set_upper_bound
 
     # coalition large enough to deserve |set_of_candidates| seats
-    model += pulp.lpSum(set_of_candidates.values()) * float(quota) <= pulp.lpSum(set_of_voters.values())
+    model += (
+        pulp.lpSum(set_of_candidates.values()) * quota
+        <= pulp.lpSum(voter.weight * set_of_voters[vi] for vi, voter in enumerate(profile))
+    )
     model += pulp.lpSum(set_of_voters.values()) >= 1
     for i, voter in enumerate(profile):
         # if i is in set_of_voters, then:
@@ -1611,7 +1617,9 @@ def _check_FJR_pulp(profile, committee, quota):
         approved_in_set_of_candidates = [
             (c in voter.approved) * set_of_candidates[i] for i, c in enumerate(profile.candidates)
         ]
-        model += pulp.lpSum(approved_in_set_of_candidates) >= beta - committeesize * (1 - set_of_voters[i])
+        model += pulp.lpSum(approved_in_set_of_candidates) >= beta - set_upper_bound * (
+            1 - set_of_voters[i]
+        )
 
     # solve the problem
     solution = mySolve(model)
@@ -1947,13 +1955,15 @@ def _check_EJR_pulp(profile, committee, quota):
     model = pulp.LpProblem("ejr_problem", pulp.LpMinimize)
 
     # integer variable: ell
+    ell_upper_bound = int(profile.total_weight() / quota)
     ell = pulp.LpVariable("ell", lowBound=1, upBound=len(committee), cat="Integer")
+    model += ell <= ell_upper_bound
 
     # binary variables: indicate whether a voter is inside the ell-cohesive group
     in_group = [pulp.LpVariable(f"in_group_{i}", cat="Binary") for i in range(len(profile))]
 
     # constraints: size of ell-cohesive group should be appropriate wrt. ell
-    model += pulp.lpSum(in_group) >= ell * float(quota)
+    model += pulp.lpSum(voter.weight * in_group[vi] for vi, voter in enumerate(profile)) >= ell * quota
 
     # constraints based on binary indicator variables:
     # if voter is in ell-cohesive group, then the voter should have
@@ -2044,21 +2054,25 @@ def _check_PJR_pulp(profile, committee, quota):
     model = pulp.LpProblem("PJR", pulp.LpMinimize)
 
     # integer variable: ell
-    ell = pulp.LpVariable("ell", 1, len(committee), cat='Integer')
+    ell_upper_bound = int(profile.total_weight() / quota)
+    ell = pulp.LpVariable("ell", 1, len(committee), cat="Integer")
+    model += ell <= ell_upper_bound
 
     # binary variables: indicate whether a voter is inside the ell-cohesive group
     in_group = {}
     for i in range(len(profile)):
-        in_group[i] = pulp.LpVariable(f"in_group_{i}", cat='Binary')
+        in_group[i] = pulp.LpVariable(f"in_group_{i}", cat="Binary")
 
     # constraint: size of ell-cohesive group should be appropriate wrt ell
-    model += pulp.lpSum(in_group.values()) >= ell * float(quota)
+    model += pulp.lpSum(
+        voter.weight * in_group[vi] for vi, voter in enumerate(profile)
+    ) >= ell * quota
 
     # binary variables: indicate whether a candidate is in the intersection
     # of approved candidates over voters inside the group
     in_cut = {}
     for cand in profile.candidates:
-        in_cut[cand] = pulp.LpVariable(f"in_cut_{cand}", cat='Binary')
+        in_cut[cand] = pulp.LpVariable(f"in_cut_{cand}", cat="Binary")
 
     # the voters in group should agree on at least ell candidates
     model += pulp.lpSum(in_cut.values()) >= ell
@@ -2165,7 +2179,8 @@ def _check_priceability_pulp(profile, committee, stable=False):
     # condition 1 [from "Multi-Winner Voting with Approval Preferences", Definition 4.8]
     for voter in profile:
         model += (
-            pulp.lpSum(payment[voter][candidate] for candidate in profile.candidates) <= budget
+            pulp.lpSum(payment[voter][candidate] for candidate in profile.candidates)
+            <= voter.weight * budget
         )
 
     # condition 2 [from "Multi-Winner Voting with Approval Preferences", Definition 4.8]
@@ -2207,7 +2222,7 @@ def _check_priceability_pulp(profile, committee, stable=False):
                         )
                         model += (
                             r
-                            == budget
+                            == voter.weight * budget
                             - pulp.lpSum(
                                 payment[voter][committee_member]
                                 for committee_member in committee
@@ -2249,7 +2264,7 @@ def _check_priceability_pulp(profile, committee, stable=False):
             if candidate not in committee:
                 model += (
                     pulp.lpSum(
-                        budget
+                        voter.weight * budget
                         - pulp.lpSum(
                             payment[voter][committee_member]
                             for committee_member in committee
@@ -2331,7 +2346,10 @@ def _check_core_pulp(profile, committee, quota):
     set_of_voters = [pulp.LpVariable(f"voter_{i}", cat="Binary") for i in range(len(profile))]
     set_of_candidates = [pulp.LpVariable(f"candidate_{i}", cat="Binary") for i in range(profile.num_cand)]
 
-    model += pulp.lpSum(set_of_candidates) * float(quota) <= pulp.lpSum(set_of_voters)
+    model += (
+        pulp.lpSum(set_of_candidates) * quota
+        <= pulp.lpSum(voter.weight * set_of_voters[vi] for vi, voter in enumerate(profile))
+    )
     model += pulp.lpSum(set_of_voters) >= 1
     for i, voter in enumerate(profile):
         approved = [
